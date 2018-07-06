@@ -1,0 +1,22 @@
+
+bootstrap:
+  ethernet1_1_profile: PingSSHHTTPS
+  ethernet1_2_profile: PingSSHHTTPS
+  default_next_hop: 2.2.2.254
+  management_mask: 255.255.255.0
+  management_gateway: 192.168.0.1
+  timezome: US/Pacific
+
+openstack:
+  image_name: panos
+  image_flavor: m1.large
+  management_network: mgmt_net
+  management_subnet: mgmt_subnet
+  management_ip: 1.1.1.1
+  outside_network: public
+  outside_subnet: public_subnet
+  outside_ip: 2.2.2.2
+  inside_network: private
+  inside_subnet: private_subnet
+  inside_ip: 3.3.3.3
+

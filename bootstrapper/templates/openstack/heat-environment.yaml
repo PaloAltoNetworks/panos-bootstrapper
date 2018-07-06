@@ -1,0 +1,12 @@
+parameters:
+  image: {{ image }}
+  flavor: {{ flavor }}
+  net_management: {{ management_network }}
+  subnet_management: {{ management_subnet }}
+  ip_management: {{ management_ip }}
+  net_outside: {{ outside_network }}
+  subnet_outside: {{ outside_subnet }}
+  ip_outside: {{ outside_ip }}
+  net_inside:  {{ inside_network }}
+  subnet_inside: {{ inside_subnet }}
+  ip_inside: {{ inside_ip }}

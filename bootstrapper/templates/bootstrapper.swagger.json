@@ -1,0 +1,94 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "PanOS Bootstrap Utility",
+    "version" : "0.1",
+    "title" : "PanOS Bootstrapper",
+    "contact" : {
+      "email" : "nembery@paloaltonetworks.com"
+    },
+    "license" : {
+      "name" : "Apache 2.0",
+      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "host" : "virtserver.swaggerhub.com",
+  "basePath" : "/pan-sp-solutions/panos_bootstrapper/1.0.0",
+  "tags" : [ {
+    "name" : "build",
+    "description" : "Calls used to build bootstrap archives"
+  }, {
+    "name" : "templates",
+    "description" : "Calls to manage bootstrap and init-cfg templates"
+  } ],
+  "schemes" : [ "https" ],
+  "paths" : {
+    "/generate_bootstrap_package" : {
+      "post" : {
+        "tags" : [ "build" ],
+        "summary" : "Build bootstrap package",
+        "description" : "Will build a zip or iso archive using the supplied template names and template variables. Each template will be serialized using the supplied variables in the payload\n",
+        "operationId" : "gernerate_bootstrap_archive",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/binary" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "build_archive_params",
+          "description" : "This is a dynamic model. Both the bootstrap and init-cfg templates can include arbitrary variables. This utility will verify all variables defined in each of the variables are ALSO included in this payload. If the template creator has added additional fields to a template, you will need to add those variables to the payload here. Use the get_template_variables API to verify what variables are required for a given set of templates.",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/definitions/BuildArchiveParams"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Archive built successfully"
+          },
+          "400" : {
+            "description" : "invalid input or missing required parameters for chosen templates"
+          }
+        }
+      }
+    }
+  },
+  "definitions" : {
+    "BuildArchiveParams" : {
+      "type" : "object",
+      "required" : [ "deployment_type", "hostname" ],
+      "properties" : {
+        "hostname" : {
+          "type" : "string",
+          "example" : "panos-01.example.net",
+          "description" : "Hostname to configure on the PanOS device"
+        },
+        "bootstrap_template" : {
+          "type" : "string",
+          "example" : "default_bootstrap",
+          "description" : "The bootstrap template to use for this archive. Use the get_template API to list available templates"
+        },
+        "init_cfg_template" : {
+          "type" : "string",
+          "example" : "init_cfg_static",
+          "description" : "The init-cfg.txt template to use for this archive. Use the get_template API to list available templates"
+        },
+        "archive_type" : {
+          "type" : "string",
+          "example" : "iso",
+          "enum" : [ "zip", "iso" ]
+        },
+        "deployment_type" : {
+          "type" : "string",
+          "description" : "The type of deployment this archive will be used for. Valid options are 'openstack' or 'kvm'. Openstack will include HEAT templates and environment files. KVM will only generate an ISO file with the selected bootstrap and init-cfg files.",
+          "enum" : [ "openstack", "kvm", "vmware" ]
+        }
+      },
+      "example" : {
+        "init_cfg_template" : "init_cfg_static",
+        "deployment_type" : "openstack",
+        "hostname" : "panos-01.example.net",
+        "archive_type" : "iso",
+        "bootstrap_template" : "default_bootstrap"
+      }
+    }
+  }
+}

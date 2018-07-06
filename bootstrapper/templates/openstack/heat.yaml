@@ -1,0 +1,108 @@
+heat_template_version: 2014-10-16
+#Michael Clark Palo Alto Networks
+description: PA-VM
+
+parameters:
+   image:
+     type: string
+     default:
+
+   flavor:
+     type: string
+     default:
+
+   net_management:
+     type: string
+     default:
+
+   subnet_management:
+     type: string
+     default: IPV4
+
+   net_outside:
+     type: string
+     default:
+
+   subnet_outside:
+     type: string
+     default:
+
+   net_inside:
+     type: string
+     default:
+
+   subnet_inside:
+     type: string
+     default:
+
+   ip_management:
+     type: string
+     default:
+
+   ip_outside:
+     type: string
+     default:
+
+   ip_inside:
+     type: string
+     default:
+
+   security-group-management:
+     type: string
+     default: default
+
+   security-group-outside:
+     type: string
+     default: default
+
+   security-group-inside:
+     type: string
+     default: default
+
+   hostname:
+     type: string
+     default: panvnf
+
+resources:
+   management:
+      type: OS::Neutron::Port
+      properties:
+          name: "management"
+          network: { get_param: net_management }
+          fixed_ips: [{"subnet": { get_param: subnet_management }, "ip_address": { get_param: ip_management }}]
+          security_groups: [{ get_param: security-group-management }]
+   outside:
+      depends_on: management
+      type: OS::Neutron::Port
+      properties:
+          name: "outside"
+          network: { get_param: net_outside }
+          fixed_ips: [{"subnet": { get_param: subnet_outside }, "ip_address": { get_param: ip_outside }}]
+          security_groups: [{ get_param: security-group-outside }]
+
+   inside:
+     depends_on: outside
+     type: OS::Neutron::Port
+     properties:
+         name: "outside"
+         network: { get_param: net_inside }
+         fixed_ips: [{"subnet": { get_param: subnet_inside }, "ip_address": { get_param: ip_inside }}]
+         security_groups: [{ get_param: security-group-inside }]
+
+   PANVNF:
+      type: OS::Nova::Server
+      properties:
+          name: { get_param: hostname }
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          networks:
+          - port: { get_resource: management }
+          - port: { get_resource: outside }
+          - port: { get_resource: inside }
+
+          user_data_format: RAW
+          config_drive: true
+          personality:
+            /config/init-cfg.txt: { get_file: "{{ init_cfg }}" }
+            /config/bootstrap.xml: { get_file: "{{ bootstrap_xml }}" }
+            /license/authcodes: { get_file: "{{ authcodes }}" }

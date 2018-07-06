@@ -1,0 +1,15 @@
+attrs==18.1.0
+click==6.7
+Flask==1.0.2
+funcsigs==1.0.2
+itsdangerous==0.24
+Jinja2==2.10
+MarkupSafe==1.0
+more-itertools==4.1.0
+pluggy==0.6.0
+py==1.5.3
+pytest==3.5.1
+PyYAML==3.12
+six==1.11.0
+SQLAlchemy==1.2.8
+Werkzeug==0.14.1

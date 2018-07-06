@@ -1,17 +1,44 @@
 # PANOS Bootstrapper
 
-Panos bootstrapper is a tool to quickly build all required files to boostrap
-a panos device. This usually requires a customized bootstrap.xml, init-cfg.txt, and 
-a license file. However, other scenarios may require more files like Openstack or ONAP.
+Panos bootstrapper is a tool to quickly build all required files to bootstrap
+a Pala Alto Networks device. This usually requires a customized bootstrap.xml, init-cfg.txt, and 
+a license file. The output will be an archive package, either ISO or ZIP, with all required files fully compiled
+from the supplied templates and input variables. 
 
 This tool follows a micro-services design philosophy where it does only one thing, but tries
-to do it well. For example, there is no GUI for this tool. It is expected that another 
-single purpose tool will consume the this API to produce a suitable UI
+to do it well. As such, there is no GUI for this tool. It is expected that another 
+tool will consume this API directly.
+
+An example GUI application that consumes this service can be found
+ [here](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui).
 
 ## Getting started
 
-Edit the `bootstrapper/conf/defaults.yaml` file to reflect your envinonment. Then refer
-to the `api_examples` documents in the docs folder. 
+A prebuilt docker container can be found here:
+
+```bash
+
+docker search nembery/panos_bootstrapper
+
+```
+
+Most users will want to use the example pre-built
+ [Automatio UI](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui)).
+
+To start the service manually, issue the following commands:
+
+```bash
+export FLASK_APP=./bootstrapper/bootstrapper.py
+flask run --host=0.0.0.0 --port=5002
+```
+
+## Examples and documentation
+
+The API is documented using the OpenAPI specification. The 
+API documentation can be found by browsing to the IP address and Port specified above. 
+
+Additional examples can be found in the api_examples.md and testing.md documents in the 'docs' folder.
+
 
 ## Customization
 

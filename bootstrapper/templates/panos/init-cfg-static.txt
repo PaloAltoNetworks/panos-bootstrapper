@@ -1,0 +1,10 @@
+type=static
+ip-address={{ management_ip }}
+default-gateway={{ management_gateway }}
+netmask={{ management_netmask }}
+hostname={{ hostname }}
+dns-primary={{ dns_server }}
+panorama-server=
+dgname=
+tplname=
+vm-auth-key={{ auth_key }}
