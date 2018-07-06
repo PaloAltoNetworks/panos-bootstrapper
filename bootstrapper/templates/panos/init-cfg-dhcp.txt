@@ -1,7 +1,7 @@
 type=dhcp
 hostname={{ hostname }}
-dns-primary={{ dns_server }}
+dns-primary=
 panorama-server=
 dgname=
 tplname=
-vm-auth-key={{ auth_key }}
+vm-auth-key=

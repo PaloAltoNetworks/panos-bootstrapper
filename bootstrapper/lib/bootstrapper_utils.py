@@ -334,18 +334,14 @@ def import_templates():
         print('Importing default init-cfg-static')
         ics_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-static.txt'))
         try:
-            print(
-                'opening file init-cfg-static'
-            )
+            print('opening file init-cfg-static')
             with open(ics_file_path, 'r') as icsf:
                 i = Template(name='init-cfg-static.txt',
                              description='Init-Cfg with static management IP addresses',
                              template=icsf.read(),
                              type='init-cfg')
 
-                print('add to db')
                 db_session.add(i)
-                print('commit to db')
                 db_session.commit()
         except OSError:
             print('Could not open file for importing')
@@ -358,6 +354,22 @@ def import_templates():
             with open(icd_file_path, 'r') as icdf:
                 i = Template(name='Default Init-Cfg DHCP',
                              description='Init-Cfg with DHCP Assigned IP addresses',
+                             template=icdf.read(),
+                             type='init-cfg')
+
+                db_session.add(i)
+                db_session.commit()
+        except OSError:
+            print('Could not open file for importing')
+    
+    init_cfg_panorama = Template.query.filter(Template.name == 'Default Init-Cfg Panorama').first()
+    if init_cfg_panorama is None:
+        print('Importing default init-cfg-panorama')
+        icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-panorama.txt'))
+        try:
+            with open(icd_file_path, 'r') as icdf:
+                i = Template(name='Default Init-Cfg panorama',
+                             description='Init-Cfg with Panorama and vm-auth-key',
                              template=icdf.read(),
                              type='init-cfg')
 
