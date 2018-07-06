@@ -158,7 +158,7 @@ Building a bootstrap package
 In this example, we took the output of the `get_bootstrap_variables` API call, entered our desired `hostname`
 (NGFW-001 in this case) and POSTed that information to the `generate_bootstrap_package` API. This returned an ISO image
 with the desired init-cfg template compiled with our variables. Attaching this ISO to a factory default PanOS firewall
-will result in the firewall booting up with the NGFW-001 hostname configured at boot. f
+will result in the firewall booting up with the NGFW-001 hostname configured at boot.
 
 
 Building a Bootstrap Package with a custom bootstrap.xml
@@ -173,7 +173,7 @@ Once again, let's get all required variables for our selected templates:
 
 .. code-block:: bash
 
-    DFWMACK0AJHTDG:confcurl -X POST -d '{"init_cfg_template": "Default Init-Cfg DHCP", "bootstrap_template": "Default Bootstrap.xml"}'  http://localhost:5000/get_bootstrap_variables | python -m json.tool
+    DFWMACK0AJHTDG:~ nembery$ curl -X POST -d '{"init_cfg_template": "Default Init-Cfg DHCP", "bootstrap_template": "Default Bootstrap.xml"}'  http://localhost:5000/get_bootstrap_variables | python -m json.tool
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100   438  100   345  100    93  19049   5135 --:--:-- --:--:-- --:--:-- 19166
@@ -213,7 +213,9 @@ This output now includes the variables required for both the init-cfg template a
     panorama-server=
     dgname=
     tplname=
-    vm-auth-key=DFWMACK0AJHTDG:~ nembery$ cat /Volumes/bootstrap/config/bootstrap.xml | grep hostname
+    vm-auth-key=
+    
+    DFWMACK0AJHTDG:~ nembery$ cat /Volumes/bootstrap/config/bootstrap.xml | grep hostname
               <hostname>NGFW-003</hostname>
 
 
