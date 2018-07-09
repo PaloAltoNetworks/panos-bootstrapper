@@ -5,7 +5,9 @@ PanOS Bootstrapper Utility
    :maxdepth: 2
    :caption: Contents:
 
+    quickstart
     usage
+    testing
 
 
 .. _here: https://www.paloaltonetworks.com/documentation/71/pan-os/newfeaturesguide/management-features/bootstrapping-firewalls-for-rapid-deployment
