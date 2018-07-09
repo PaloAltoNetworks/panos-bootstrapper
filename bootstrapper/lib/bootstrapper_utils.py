@@ -328,10 +328,9 @@ def import_templates():
         except OSError:
             print('Could not open file for importing')
 
-    print('Importing init-cfg-static')
     init_cfg_static = Template.query.filter(Template.name == 'init-cfg-static.txt').first()
     if init_cfg_static is None:
-        print('Importing default init-cfg-static')
+        print('Importing init-cfg-static')
         ics_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-static.txt'))
         try:
             print('opening file init-cfg-static')
@@ -362,7 +361,7 @@ def import_templates():
         except OSError:
             print('Could not open file for importing')
     
-    init_cfg_panorama = Template.query.filter(Template.name == 'Default Init-Cfg Panorama').first()
+    init_cfg_panorama = Template.query.filter(Template.name == 'Default Init-Cfg panorama').first()
     if init_cfg_panorama is None:
         print('Importing default init-cfg-panorama')
         icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-panorama.txt'))
