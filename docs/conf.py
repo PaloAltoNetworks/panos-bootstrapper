@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'PanOS Bootstrapper Utility'
-copyright = '2018, Nathan Embery'
-author = 'Nathan Embery'
+copyright = '2018, Palo Alto Networks'
+author = 'SP-Solutions'
 
 # The short X.Y version
 version = ''
@@ -129,7 +129,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'PanOSBootstrapperUtility.tex', 'PanOS Bootstrapper Utility Documentation',
-     'Nathan Embery', 'manual'),
+     'Palo Alto Networks', 'manual'),
 ]
 
 
