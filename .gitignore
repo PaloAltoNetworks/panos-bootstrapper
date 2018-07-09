@@ -4,3 +4,6 @@
 venv
 .DS_Store
 bootstrapper/templates/import/
+docs/_build
+docs/_static
+docs/_templates
