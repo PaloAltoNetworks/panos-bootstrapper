@@ -200,7 +200,6 @@ def get_template(template_name):
 def get_required_vars_from_template(template_name):
     """
     Parse the template and return a list of all the variables defined therein
-    template path is usually something like 'templates/panos/bootstrap.xml'
     :param template_name: relative path to the application root to a jinja2 template
     :return: set of variable named defined in the template
     """
@@ -369,6 +368,22 @@ def import_templates():
             with open(icd_file_path, 'r') as icdf:
                 i = Template(name='Default Init-Cfg panorama',
                              description='Init-Cfg with Panorama and vm-auth-key',
+                             template=icdf.read(),
+                             type='init-cfg')
+
+                db_session.add(i)
+                db_session.commit()
+        except OSError:
+            print('Could not open file for importing')
+
+    init_cfg_complete = Template.query.filter(Template.name == 'Default Init-Cfg complete').first()
+    if init_cfg_complete is None:
+        print('Importing default init-cfg-complete')
+        icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-complete.txt'))
+        try:
+            with open(icd_file_path, 'r') as icdf:
+                i = Template(name='Default Init-Cfg complete',
+                             description='Init-Cfg with all available options',
                              template=icdf.read(),
                              type='init-cfg')
 
