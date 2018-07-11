@@ -5,18 +5,14 @@ a Pala Alto Networks device. This usually requires a customized bootstrap.xml, i
 a license file. The output will be an archive package, either ISO or ZIP, with all required files fully compiled
 from the supplied templates and input variables. 
 
+This utility provides an API only. An example web interface is provided here: An example web application that consumes 
+this service can be [here](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui).
+
 For details about the bootstrapping process, refer to the official 
 [documentation](https://www.paloaltonetworks.com/documentation/71/pan-os/newfeaturesguide/management-features/bootstrapping-firewalls-for-rapid-deployment.html).
 
 The bootstrap package format is documented [here](https://www.paloaltonetworks.com/documentation/71/virtualization/virtualization/bootstrap-the-vm-series-firewall/prepare-the-bootstrap-package)
 
-
-This tool follows a micro-services design philosophy where it does only one thing, but tries
-to do it well. As such, there is no GUI for this tool. It is expected that another 
-tool will consume this API directly.
-
-An example web application that consumes this service can be found
- [here](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui).
 
 ## Getting started
 
@@ -29,7 +25,7 @@ docker search nembery/panos_bootstrapper
 ```
 
 Most users will want to use the example pre-built
- [Automatio UI](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui)).
+ [Automatio UI](https://github.com/PaloAltoNetworks/panos-bootstrapper-ui).
 
 To start the service manually, issue the following commands:
 
