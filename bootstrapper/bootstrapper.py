@@ -16,6 +16,7 @@ from bootstrapper.lib.db import db_session
 from bootstrapper.lib.db import init_db
 from bootstrapper.lib.exceptions import RequiredParametersError
 from bootstrapper.lib.exceptions import TemplateNotFoundError
+from .lib import jinja2_filters
 
 app = Flask(__name__)
 defaults = bootstrapper_utils.load_defaults()
@@ -238,6 +239,39 @@ def list_init_cfg_templates():
     return jsonify(success=True, templates=ts, status_code=200)
 
 
+@app.route('/render_template', methods=['POST'])
+def render_template():
+    """
+    Renders a template with the posted variables
+    :return: json with 'success', 'message' and 'status' keys
+    """
+    posted_json = request.get_json(force=True)
+    return bootstrapper_utils.compile_template(posted_json)
+
+
+@app.route('/get_template_variables', methods=['POST'])
+def get_template_variables():
+    print('Getting variables from a single template')
+    posted_json = request.get_json(force=True)
+
+    if 'template_name' not in posted_json:
+        abort(400, 'Not all required keys for bootstrap.xml are present')
+
+    template_name = posted_json['template_name']
+    required = bootstrapper_utils.get_required_vars_from_template(template_name)
+
+    payload = dict()
+    payload['template_name'] = template_name
+    if 'format' in posted_json and posted_json['format'] == 'aframe':
+        for v in required:
+            payload[v] = "{{ %s }}" % v
+    else:
+        for v in required:
+            payload[v] = ""
+
+    return jsonify(success=True, payload=payload, status_code=200)
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
@@ -247,6 +281,9 @@ def shutdown_session(exception=None):
 def init_application():
     init_db()
     bootstrapper_utils.import_templates()
+
+    for f in jinja2_filters.defined_filters:
+        app.jinja_env.filters[f] = getattr(jinja2_filters, f)
 
 
 if __name__ == '__main__':

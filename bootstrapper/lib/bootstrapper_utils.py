@@ -17,6 +17,7 @@ from bootstrapper.lib.db_models import Template
 from bootstrapper.lib.exceptions import RequiredParametersError
 from bootstrapper.lib.exceptions import TemplateNotFoundError
 from bootstrapper.lib.exceptions import InvalidConfigurationError
+from ..lib import jinja2_filters
 
 app = Flask(__name__)
 
@@ -215,6 +216,12 @@ def get_required_vars_from_template(template_name):
 
         # get the jinja environment to use it's parse function
         env = jinja2.Environment()
+
+        # load all our custom filters
+        for f in jinja2_filters.defined_filters:
+            env.filters[f] = getattr(jinja2_filters, f)
+
+        # env.filters['sha512_hash'] = jinja2_filters.sha512_hash
         # parse returns an AST that can be send to the meta module
         ast = env.parse(t.template)
         # return a set of all variable defined in the template
@@ -424,7 +431,6 @@ def build_base_configs(configuration_parameters):
 
     config = load_config()
     defaults = load_defaults()
-    print('WTF')
     # first check for a custom init-cfg file passed in as a parameter
     if 'init_cfg_template' in configuration_parameters:
         print('found a valid init_cfg_template')
@@ -525,6 +531,24 @@ def build_openstack_heat(base_config, posted_json, archive=False):
     base_config['heat-template.yaml']['archive_path'] = '.'
 
     return base_config
+
+
+def compile_template(configuration_parameters):
+
+    if 'template_name' not in configuration_parameters:
+        raise RequiredParametersError('Not all required keys for bootstrap.xml are present')
+
+    template_name = configuration_parameters['template_name']
+    required = get_required_vars_from_template(template_name)
+    if not required.issubset(configuration_parameters):
+        raise RequiredParametersError('Not all required keys for bootstrap.xml are present')
+
+    template = get_template(template_name)
+
+    if template is None:
+        raise TemplateNotFoundError('Could not load %s' % template_name)
+
+    return render_template_string(template, **configuration_parameters)
 
 
 def unescape(s):

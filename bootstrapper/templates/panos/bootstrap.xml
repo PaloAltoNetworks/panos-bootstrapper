@@ -3,7 +3,7 @@
   <mgt-config>
     <users>
       <entry name="admin">
-        <phash>fnRL/G5lXVMug</phash>
+        <phash>{{ password|sha512_hash }}</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>
