@@ -3,7 +3,7 @@
   <mgt-config>
     <users>
       <entry name="admin">
-        <phash>{{ password|sha512_hash }}</phash>
+        <phash>{{ password|md5_hash }}</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>

@@ -114,6 +114,11 @@ def generate_bootstrap_package():
         archive = archive_utils.create_iso(base_config, posted_json['hostname'])
         mime_type = 'application/iso-image'
 
+    elif archive_type == 's3':
+        response = archive_utils.create_s3_bucket(base_config, posted_json['hostname'], posted_json['aws_location'],
+                                                  posted_json['aws_key'], posted_json['aws_secret']
+                                                  )
+        return jsonify(response=response)
     else:
         # no ISO required, just make a zip
         archive = archive_utils.create_archive(base_config, posted_json['hostname'])
@@ -123,7 +128,7 @@ def generate_bootstrap_package():
     if archive is None:
         abort(500, 'Could not create archive! Check bootstrapper logs for more information')
 
-    return send_file(archive, mimetype=mime_type)
+    return send_file(archive, mimetype=mime_type, as_attachment=True)
 
 
 @app.route('/get_bootstrap_variables', methods=['POST'])
