@@ -245,7 +245,7 @@ def list_init_cfg_templates():
 
 
 @app.route('/render_template', methods=['POST'])
-def render_template():
+def render_db_template():
     """
     Renders a template with the posted variables
     :return: json with 'success', 'message' and 'status' keys
