@@ -5,6 +5,9 @@ import uuid
 
 import boto3
 from azure.storage.file import FileService
+
+from azure.common import AzureException, AzureHttpError
+
 from botocore.exceptions import ClientError
 from google.auth.exceptions import GoogleAuthError
 from google.cloud import storage
@@ -238,46 +241,28 @@ def create_azure_fileshare(files, share_prefix, account_name, account_key):
 
     archive_file_path = _create_archive_directory(files, share_prefix)
 
-    file_service = FileService(account_name=account_name, account_key=account_key)
+    try:
+        file_service = FileService(account_name=account_name, account_key=account_key)
 
-    if not file_service.exists(share_name):
-        file_service.create_share(share_name)
+        if not file_service.exists(share_name):
+            file_service.create_share(share_name)
 
-    print('creating config')
-    if not file_service.exists(share_name, directory_name='config'):
-        file_service.create_directory(share_name, 'config')
+        for d in ['config', 'content', 'software', 'license']:
+            print('creating directory of type: {}'.format(d))
+            if not file_service.exists(share_name, directory_name=d):
+                file_service.create_directory(share_name, d)
 
-    config_dir = os.path.join(archive_file_path, 'config')
-    for filename in os.listdir(config_dir):
-        print('creating file: {0}'.format(filename))
-        file_service.create_file_from_path(share_name, 'config', filename, os.path.join(config_dir, filename))
+            d_dir = os.path.join(archive_file_path, d)
+            for filename in os.listdir(d_dir):
+                print('creating file: {0}'.format(filename))
+                file_service.create_file_from_path(share_name, d, filename, os.path.join(d_dir, filename))
 
-    print('creating content')
-    if not file_service.exists(share_name, directory_name='content'):
-        file_service.create_directory(share_name, 'content')
-
-    content_dir = os.path.join(archive_file_path, 'content')
-    for filename in os.listdir(content_dir):
-        print('creating file: {0}'.format(filename))
-        file_service.create_file_from_path(share_name, 'content', filename, os.path.join(content_dir, filename))
-
-    print('creating software')
-    if not file_service.exists(share_name, directory_name='software'):
-        file_service.create_directory(share_name, 'software')
-
-    software_dir = os.path.join(archive_file_path, 'software')
-    for filename in os.listdir(software_dir):
-        print('creating file: {0}'.format(filename))
-        file_service.create_file_from_path(share_name, 'software', filename, os.path.join(software_dir, filename))
-
-    print('creating license')
-    if not file_service.exists(share_name, directory_name='license'):
-        file_service.create_directory(share_name, 'license')
-
-    license_dir = os.path.join(archive_file_path, 'license')
-    for filename in os.listdir(license_dir):
-        print('creating file: {0}'.format(filename))
-        file_service.create_file_from_path(share_name, 'license', filename, os.path.join(license_dir, filename))
+    except AzureException as ahe:
+        print(ahe)
+        return str(ahe)
+    except ValueError as ve:
+        print(ve)
+        return str(ve)
 
     print('all done')
     return 'Azure file-share {} created successfully'.format(share_name)
