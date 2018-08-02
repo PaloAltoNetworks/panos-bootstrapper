@@ -119,6 +119,21 @@ def generate_bootstrap_package():
                                                   posted_json['aws_key'], posted_json['aws_secret']
                                                   )
         return jsonify(response=response)
+
+    elif archive_type == 'azure':
+        response = archive_utils.create_azure_fileshare(base_config, posted_json['hostname'],
+                                                        posted_json['azure_account_name'],
+                                                        posted_json['azure_account_key']
+                                                        )
+        return jsonify(response=response)
+
+    elif archive_type == 'gcp':
+        response = archive_utils.create_gcp_bucket(base_config, posted_json['hostname'],
+                                                   posted_json['project_id'],
+                                                   posted_json["access_token"]
+                                                   )
+        return jsonify(response=response)
+
     else:
         # no ISO required, just make a zip
         archive = archive_utils.create_archive(base_config, posted_json['hostname'])
@@ -293,4 +308,3 @@ def init_application():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
-

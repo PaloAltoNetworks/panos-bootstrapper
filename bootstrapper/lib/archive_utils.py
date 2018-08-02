@@ -1,10 +1,16 @@
 import logging
 import os
 import shutil
+import uuid
 
 import boto3
+from azure.storage.file import FileService
 from botocore.exceptions import ClientError
-import uuid
+from google.auth.exceptions import GoogleAuthError
+from google.cloud import storage
+from google.oauth2.credentials import Credentials
+
+from google.api_core.exceptions import BadRequest
 
 from . import cache_utils
 
@@ -206,20 +212,112 @@ def create_s3_bucket(files, bucket_name, location, access_key, secret_key):
     response = client.put_object(Bucket=bucket_name, Body='', Key='content/')
     print(response)
     print('creating software')
-    response = client.put_object( Bucket=bucket_name, Body='', Key='software/')
+    response = client.put_object(Bucket=bucket_name, Body='', Key='software/')
     print(response)
     print('creating license')
-    response = client.put_object( Bucket=bucket_name, Body='', Key='license/')
+    response = client.put_object(Bucket=bucket_name, Body='', Key='license/')
     print(response)
+
+    # FIXME does not include content!
 
     for f in files:
         contents = cache_utils.get(files[f]['key'])
         key = files[f]['archive_path'] + '/' + f
-        response = client.put_object( Bucket=bucket_name, Body=contents, Key=key)
+        response = client.put_object(Bucket=bucket_name, Body=contents, Key=key)
         print(response)
 
     print('all done')
     return 'S3 bucket {} created successfully'.format(bucket_name)
+
+
+def create_azure_fileshare(files, share_prefix, account_name, account_key):
+    # generate a unique share name to avoid overlaps in shared infra
+    share_name = "{0}-{1}".format(share_prefix, str(uuid.uuid4()))
+    print('using sahre_name of:')
+    print(share_name)
+
+    archive_file_path = _create_archive_directory(files, share_prefix)
+
+    file_service = FileService(account_name=account_name, account_key=account_key)
+
+    if not file_service.exists(share_name):
+        file_service.create_share(share_name)
+
+    print('creating config')
+    if not file_service.exists(share_name, directory_name='config'):
+        file_service.create_directory(share_name, 'config')
+
+    config_dir = os.path.join(archive_file_path, 'config')
+    for filename in os.listdir(config_dir):
+        print('creating file: {0}'.format(filename))
+        file_service.create_file_from_path(share_name, 'config', filename, os.path.join(config_dir, filename))
+
+    print('creating content')
+    if not file_service.exists(share_name, directory_name='content'):
+        file_service.create_directory(share_name, 'content')
+
+    content_dir = os.path.join(archive_file_path, 'content')
+    for filename in os.listdir(content_dir):
+        print('creating file: {0}'.format(filename))
+        file_service.create_file_from_path(share_name, 'content', filename, os.path.join(content_dir, filename))
+
+    print('creating software')
+    if not file_service.exists(share_name, directory_name='software'):
+        file_service.create_directory(share_name, 'software')
+
+    software_dir = os.path.join(archive_file_path, 'software')
+    for filename in os.listdir(software_dir):
+        print('creating file: {0}'.format(filename))
+        file_service.create_file_from_path(share_name, 'software', filename, os.path.join(software_dir, filename))
+
+    print('creating license')
+    if not file_service.exists(share_name, directory_name='license'):
+        file_service.create_directory(share_name, 'license')
+
+    license_dir = os.path.join(archive_file_path, 'license')
+    for filename in os.listdir(license_dir):
+        print('creating file: {0}'.format(filename))
+        file_service.create_file_from_path(share_name, 'license', filename, os.path.join(license_dir, filename))
+
+    print('all done')
+    return 'Azure file-share {} created successfully'.format(share_name)
+
+
+def create_gcp_bucket(files, bucket_prefix, project_id, access_token):
+
+    archive_file_path = _create_archive_directory(files, bucket_prefix)
+
+    try:
+        credentials = Credentials(access_token)
+        client = storage.Client(project_id, credentials)
+
+        bucket_name = '{0}-{1}'.format(bucket_prefix, uuid.uuid4())
+        bucket = client.create_bucket(bucket_name)
+
+    except GoogleAuthError as gae:
+        print(gae)
+        return 'Could not authenticate to GCP!'
+
+    except BadRequest as br:
+        print(br)
+        return str(br)
+
+    except ValueError as ve:
+        print(ve)
+        return str(ve)
+
+    for d in ['config', 'content', 'software', 'license']:
+        print('creating directory of type: {}'.format(d))
+        d_dir_blob = bucket.blob('{}/'.format(d))
+        d_dir_blob.upload_from_string('', content_type='application/x-www-form-urlencoded;charset=UTF-8')
+        d_dir = os.path.join(archive_file_path, d)
+        for filename in os.listdir(d_dir):
+            print('creating file: {0}'.format(filename))
+            d_dir_file = bucket.blob('{0}/{1}'.format(d, filename))
+            d_dir_file.upload_from_filename(os.path.join(d_dir, filename))
+
+    print('all done')
+    return 'GCP Bucket {} created successfully'.format(bucket_name)
 
 
 def check_latest_update(package_type):
