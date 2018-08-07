@@ -27,3 +27,8 @@ Choose Create New Access Key. Then choose Download Key File to save the access k
 .. Warning::
     A root access key grants full programmatic access to your resources, meaning that it should be guarded as carefully as the root sign-in credentials for your account.
 
+
+Next Steps
+----------
+
+Refer to the official documentation here: `Bootstrap the VM-Series Firewall on AWS <https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-in-aws.html>`_

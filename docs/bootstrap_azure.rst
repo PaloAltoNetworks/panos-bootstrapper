@@ -24,3 +24,7 @@ Copy either **key1** or **key2**.
     An access key grants full programmatic access to your resources, meaning that it should be guarded as carefully as the root sign-in credentials for your account.
 
 
+Next Steps
+----------
+
+Refer to the official documentation here: `Bootstrap the VM-Series Firewall in Azure <https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-in-azure.html>`_

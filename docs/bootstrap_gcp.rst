@@ -42,3 +42,7 @@ Copy the value of the **Access Token** field. This token will only be valid for 
     hide this option and open **Step 3**. **Step 3** is not needed for this application.
 
 
+Next Steps
+----------
+
+Refer to the official documentation for bootstrapping a VM-Series firewall here: `Bootstrapping Workflow <https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/vm-series-firewall-bootstrap-workflow.html>`_
