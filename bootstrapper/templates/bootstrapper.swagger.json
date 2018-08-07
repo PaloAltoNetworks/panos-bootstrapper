@@ -1,93 +1,405 @@
 {
   "swagger" : "2.0",
   "info" : {
-    "description" : "PanOS Bootstrap Utility",
+    "description" : "A service to build bootstrap archives in various cloud environments. This\ntool will build S3 buckets in AWS, File Shares in Azure, Buckets in GCP, \ndatastore entries in VMWare and build ISO images for use with KVM. In short\nthis tool should help get VM-Series NGFWs up and running as quickly as \npossible. ",
     "version" : "0.1",
-    "title" : "PanOS Bootstrapper",
-    "contact" : {
-      "email" : "nembery@paloaltonetworks.com"
-    },
-    "license" : {
-      "name" : "Apache 2.0",
-      "url" : "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
+    "title" : "PanOS Bootstrap Utility"
   },
-  "host" : "virtserver.swaggerhub.com",
-  "basePath" : "/pan-sp-solutions/panos_bootstrapper/1.0.0",
-  "tags" : [ {
-    "name" : "build",
-    "description" : "Calls used to build bootstrap archives"
-  }, {
-    "name" : "templates",
-    "description" : "Calls to manage bootstrap and init-cfg templates"
-  } ],
-  "schemes" : [ "https" ],
   "paths" : {
-    "/generate_bootstrap_package" : {
+    "/bootstrap_azure" : {
       "post" : {
-        "tags" : [ "build" ],
-        "summary" : "Build bootstrap package",
-        "description" : "Will build a zip or iso archive using the supplied template names and template variables. Each template will be serialized using the supplied variables in the payload\n",
-        "operationId" : "gernerate_bootstrap_archive",
+        "description" : "Bootstrap VM-Series on Microsoft Azure",
         "consumes" : [ "application/json" ],
-        "produces" : [ "application/binary" ],
+        "produces" : [ "application/json" ],
         "parameters" : [ {
           "in" : "body",
-          "name" : "build_archive_params",
-          "description" : "This is a dynamic model. Both the bootstrap and init-cfg templates can include arbitrary variables. This utility will verify all variables defined in each of the variables are ALSO included in this payload. If the template creator has added additional fields to a template, you will need to add those variables to the payload here. Use the get_template_variables API to verify what variables are required for a given set of templates.",
-          "required" : true,
+          "name" : "body",
+          "required" : false,
           "schema" : {
-            "$ref" : "#/definitions/BuildArchiveParams"
+            "$ref" : "#/definitions/bootstrap_azure_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n        \"azure_account_key\": \"zzzzzz\",\n        \"azure_account_name\": \"head1srvubuntudiag744\",\n        \"ADMINISTRATOR_USERNAME\": \"administrator\",\n        \"ADMINISTRATOR_PASSWORD\": \"asdfasdfasdf\",\n        \"bootstrap_template\": \"Default Bootstrap.xml\",\n        \"hostname\": \"panos-01\",\n        \"init_cfg_template\": \"Default Init-Cfg\",\n        \"dhcp_or_static\": \"dhcp_client\",\n        \"default_gateway\": \"\",\n        \"dg_name\": \"\",\n        \"dhcp_accept_server_domain\": \"\",\n        \"dhcp_accept_server_hostname\": \"\",\n        \"dhcp_send_client_id\": \"\",\n        \"dhcp_send_hostname\": \"\",\n        \"dns_primary\": \"\",\n        \"dns_secondary\": \"\",\n        \"ip_address\": \"\",\n        \"ipv6_address\": \"\",\n        \"ipv6_default_gateway\": \"\",\n        \"netmask\": \"\",\n        \"op_command_modes\": \"\",\n        \"panorama_server\": \"\",\n        \"panorama_server_2\": \"\",\n        \"tpl_name\": \"\",\n        \"vm_auth_key\": \"\"\n}"
           }
         } ],
         "responses" : {
           "200" : {
-            "description" : "Archive built successfully"
+            "description" : "Definition generated from Swagger Inspector"
           },
-          "400" : {
-            "description" : "invalid input or missing required parameters for chosen templates"
+          "500" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/bootstrap_gcp" : {
+      "post" : {
+        "description" : "Bootstrap VM-Series on Google Compute Platform",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/bootstrap_gcp_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n        \"gcp_project_id\": \"possible-point-211418\",\n        \"gcp_access_token\": \"dfasdfasdf\",\n        \"ADMINISTRATOR_PASSWORD\": \"administrator\",\n        \"ADMINISTRATOR_USERNAME\": \"asdfasdfasdf\",\n        \"bootstrap_template\": \"Default Bootstrap.xml\",\n        \"hostname\": \"panos-01\",\n        \"init_cfg_template\": \"Default Init-Cfg\",\n        \"dhcp_or_static\": \"dhcp_client\",\n        \"default_gateway\": \"\",\n        \"dg_name\": \"\",\n        \"dhcp_accept_server_domain\": \"\",\n        \"dhcp_accept_server_hostname\": \"\",\n        \"dhcp_send_client_id\": \"\",\n        \"dhcp_send_hostname\": \"\",\n        \"dns_primary\": \"\",\n        \"dns_secondary\": \"\",\n        \"ip_address\": \"\",\n        \"ipv6_address\": \"\",\n        \"ipv6_default_gateway\": \"\",\n        \"netmask\": \"\",\n        \"op_command_modes\": \"\",\n        \"panorama_server\": \"\",\n        \"panorama_server_2\": \"\",\n        \"tpl_name\": \"\",\n        \"vm_auth_key\": \"\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/bootstrap_aws" : {
+      "post" : {
+        "description" : "Bootstrap VM-Series on Amazon Web Services",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "text/html" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/bootstrap_aws_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n        \"aws_secret\": \"abcdef\",\n        \"aws_key\": \"123456\",\n        \"aws_location\": \"us-east-2\",\n        \"ADMINISTRATOR_PASSWORD\": \"admin\",\n        \"ADMINISTRATOR_USERNAME\": \"youshouldchangeme\",\n        \"bootstrap_template\": \"Default Bootstrap.xml\",\n        \"hostname\": \"test-01\",\n        \"init_cfg_template\": \"Default Init-Cfg\",\n        \"dhcp_or_static\": \"dhcp_client\",\n        \"default_gateway\": \"\",\n        \"dg_name\": \"\",\n        \"dhcp_accept_server_domain\": \"}\",\n        \"dhcp_accept_server_hostname\": \"\",\n        \"dhcp_send_client_id\": \"\",\n        \"dhcp_send_hostname\": \"\",\n        \"dns_primary\": \"\",\n        \"dns_secondary\": \"\",\n        \"ip_address\": \"\",\n        \"ipv6_address\": \"\",\n        \"ipv6_default_gateway\": \"\",\n        \"netmask\": \"\",\n        \"op_command_modes\": \"\",\n        \"panorama_server\": \"\",\n        \"panorama_server_2\": \"\",\n        \"tpl_name\": \"\",\n        \"vm_auth_key\": \"\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/bootstrap_kvm" : {
+      "post" : {
+        "description" : "Bootstrap VM-Series on Linux KVM. Returns an ISO image",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/iso-image" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/default_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n        \"ADMINISTRATOR_USERNAME\": \"administrator\",\n        \"ADMINISTRATOR_PASSWORD\": \"asdfasdfasdf\",\n        \"bootstrap_template\": \"Default Bootstrap.xml\",\n        \"hostname\": \"panos-01\",\n        \"init_cfg_template\": \"Default Init-Cfg\",\n        \"dhcp_or_static\": \"dhcp_client\",\n        \"default_gateway\": \"\",\n        \"dg_name\": \"\",\n        \"dhcp_accept_server_domain\": \"\",\n        \"dhcp_accept_server_hostname\": \"\",\n        \"dhcp_send_client_id\": \"\",\n        \"dhcp_send_hostname\": \"\",\n        \"dns_primary\": \"\",\n        \"dns_secondary\": \"\",\n        \"ip_address\": \"\",\n        \"ipv6_address\": \"\",\n        \"ipv6_default_gateway\": \"\",\n        \"netmask\": \"\",\n        \"op_command_modes\": \"\",\n        \"panorama_server\": \"\",\n        \"panorama_server_2\": \"\",\n        \"tpl_name\": \"\",\n        \"vm_auth_key\": \"\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          },
+          "500" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/get_bootstrap_variables" : {
+      "post" : {
+        "description" : "Return list of template variables for the given set of \nbootstrap templates\n",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/get_bootstrap_variables_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n    \"format\": \"aframe\",\n    \"bootstrap_template\": \"Default Bootstrap.xml\",\n    \"init_cfg_template\": \"Default Init-Cfg\",\n    \"authcodes_template\": \"None\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/delete_template" : {
+      "post" : {
+        "description" : "Delete a template",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/delete_template_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n    \"template_name\": \"TEST_IMPORT\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/import_template" : {
+      "post" : {
+        "description" : "Import a new template",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/import_template_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n    \"name\": \"TEST_IMPORT\",\n    \"description\": \"test import template\",\n    \"type\": \"bootstrap\",\n    \"template\": \"template string here with {{ var_name }}\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/get_template" : {
+      "post" : {
+        "description" : "Return the text of a template",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/get_template_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n    \"template_name\": \"Default Bootstrap.xml\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/render_template" : {
+      "post" : {
+        "description" : "\"Return the compiled template with all variables interpolated\"",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/text" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "body",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/render_template_payload"
+          },
+          "x-examples" : {
+            "application/json" : "{\n    \"template_name\": \"TEST_IMPORT\",\n    \"var_name\": \"Some variable\"\n}"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector",
+            "x-examples" : {
+              "application/text" : "template string here with Some variable"
+            }
+          }
+        }
+      }
+    },
+    "/list_templates" : {
+      "get" : {
+        "description" : "Returns a list of bootstrap templates",
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
+          }
+        }
+      }
+    },
+    "/list_init_cfg_templates" : {
+      "get" : {
+        "description" : "Returns a list of init-cfg templates",
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Definition generated from Swagger Inspector"
           }
         }
       }
     }
   },
   "definitions" : {
-    "BuildArchiveParams" : {
+    "import_template_payload" : {
       "type" : "object",
-      "required" : [ "deployment_type", "hostname" ],
       "properties" : {
-        "hostname" : {
+        "name" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "type" : {
+          "type" : "string"
+        },
+        "template" : {
+          "type" : "string"
+        }
+      }
+    },
+    "delete_template_payload" : {
+      "type" : "object",
+      "properties" : {
+        "template_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "render_template_payload" : {
+      "type" : "object",
+      "properties" : {
+        "template_name" : {
+          "type" : "string"
+        },
+        "some_var" : {
           "type" : "string",
-          "example" : "panos-01.example.net",
-          "description" : "Hostname to configure on the PanOS device"
+          "description" : "Payload should include ALL variables that are defined in the \ntemplate text. In this example, the import_template call created\na template with name 'TEST_IMPORT'. The template declared a single\nvariable called 'some_var'. Adding this as a key in the payload \nwill cause the value to be interpolated in the resulting text."
+        }
+      }
+    },
+    "default_payload" : {
+      "type" : "object",
+      "properties" : {
+        "ADMINISTRATOR_PASSWORD" : {
+          "type" : "string"
+        },
+        "ADMINISTRATOR_USERNAME" : {
+          "type" : "string"
         },
         "bootstrap_template" : {
           "type" : "string",
-          "example" : "default_bootstrap",
-          "description" : "The bootstrap template to use for this archive. Use the get_template API to list available templates"
+          "description" : "Name of the bootstrap template to use"
+        },
+        "hostname" : {
+          "type" : "string"
         },
         "init_cfg_template" : {
           "type" : "string",
-          "example" : "init_cfg_static",
-          "description" : "The init-cfg.txt template to use for this archive. Use the get_template API to list available templates"
+          "description" : "Name of the init-cfg template to use"
         },
-        "archive_type" : {
+        "dhcp_or_static" : {
           "type" : "string",
-          "example" : "iso",
-          "enum" : [ "zip", "iso" ]
+          "enum" : [ "dhcp_client", "static" ]
         },
-        "deployment_type" : {
-          "type" : "string",
-          "description" : "The type of deployment this archive will be used for. Valid options are 'openstack' or 'kvm'. Openstack will include HEAT templates and environment files. KVM will only generate an ISO file with the selected bootstrap and init-cfg files.",
-          "enum" : [ "openstack", "kvm", "vmware" ]
+        "default_gateway" : {
+          "type" : "string"
+        },
+        "dg_name" : {
+          "type" : "string"
+        },
+        "dhcp_accept_server_domain" : {
+          "type" : "string"
+        },
+        "dhcp_accept_server_hostname" : {
+          "type" : "string"
+        },
+        "dhcp_send_client_id" : {
+          "type" : "string"
+        },
+        "dhcp_send_hostname" : {
+          "type" : "string"
+        },
+        "dns_primary" : {
+          "type" : "string"
+        },
+        "dns_secondary" : {
+          "type" : "string"
+        },
+        "ip_address" : {
+          "type" : "string"
+        },
+        "ipv6_address" : {
+          "type" : "string"
+        },
+        "ipv6_default_gateway" : {
+          "type" : "string"
+        },
+        "netmask" : {
+          "type" : "string"
+        },
+        "op_command_modes" : {
+          "type" : "string"
+        },
+        "panorama_server" : {
+          "type" : "string"
+        },
+        "panorama_server_2" : {
+          "type" : "string"
+        },
+        "tpl_name" : {
+          "type" : "string"
+        },
+        "vm_auth_key" : {
+          "type" : "string"
         }
-      },
-      "example" : {
-        "init_cfg_template" : "init_cfg_static",
-        "deployment_type" : "openstack",
-        "hostname" : "panos-01.example.net",
-        "archive_type" : "iso",
-        "bootstrap_template" : "default_bootstrap"
+      }
+    },
+    "bootstrap_azure_payload" : {
+      "allOf" : [ {
+        "$ref" : "#/definitions/default_payload"
+      }, { } ]
+    },
+    "bootstrap_gcp_payload" : {
+      "allOf" : [ {
+        "$ref" : "#/definitions/default_payload"
+      }, { } ]
+    },
+    "bootstrap_aws_payload" : {
+      "allOf" : [ {
+        "$ref" : "#/definitions/default_payload"
+      }, { } ]
+    },
+    "get_template_payload" : {
+      "type" : "object",
+      "properties" : {
+        "template_name" : {
+          "type" : "string"
+        }
+      }
+    },
+    "get_bootstrap_variables_payload" : {
+      "type" : "object",
+      "properties" : {
+        "format" : {
+          "type" : "string"
+        },
+        "bootstrap_template" : {
+          "type" : "string"
+        },
+        "init_cfg_template" : {
+          "type" : "string"
+        },
+        "authcodes_template" : {
+          "type" : "string"
+        }
       }
     }
   }
