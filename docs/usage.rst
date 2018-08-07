@@ -213,7 +213,8 @@ This output now includes the variables required for both the init-cfg template a
     panorama-server=
     dgname=
     tplname=
-    vm-auth-key=local:~ operator$ cat /Volumes/bootstrap/config/bootstrap.xml | grep hostname
+    vm-auth-key=
+    local:~ operator$ cat /Volumes/bootstrap/config/bootstrap.xml | grep hostname
               <hostname>NGFW-003</hostname>
 
 
