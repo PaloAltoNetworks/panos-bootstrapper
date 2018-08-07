@@ -14,6 +14,7 @@ PanOS Bootstrapper Utility
    bootstrap_aws
    bootstrap_azure
    bootstrap_gcp
+   bootstrap_kvm
    usage
    testing
 
