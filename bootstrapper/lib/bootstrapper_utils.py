@@ -1,22 +1,24 @@
 import os
 
 import jinja2
+import requests
 import yaml
 from flask import Flask
 from flask import g
 from flask import render_template
 from flask import render_template_string
-from jinja2 import meta
 from jinja2 import TemplateSyntaxError
+from jinja2 import meta
+from requests.exceptions import HTTPError
 from sqlalchemy.exc import SQLAlchemyError
 
 from bootstrapper.lib import cache_utils
 from bootstrapper.lib import openstack_utils
 from bootstrapper.lib.db import db_session
 from bootstrapper.lib.db_models import Template
+from bootstrapper.lib.exceptions import InvalidConfigurationError
 from bootstrapper.lib.exceptions import RequiredParametersError
 from bootstrapper.lib.exceptions import TemplateNotFoundError
-from bootstrapper.lib.exceptions import InvalidConfigurationError
 from ..lib import jinja2_filters
 
 app = Flask(__name__)
@@ -312,114 +314,68 @@ def import_templates():
     Ensures all default and imported templates exist in the template table
     :return: None
     """
-    loaded_config = load_config()
+    import_base_directory = os.path.abspath(os.path.join(app.root_path, '../templates/import'))
+    metadata_config = os.path.join(import_base_directory, 'meta.yaml')
+    metadata = dict()
+    print(metadata_config)
+    if os.path.exists(metadata_config):
+        print('loading metadata')
+        with open(metadata_config, 'r') as metadata_file:
+            metadata_string = metadata_file.read()
+            metadata = yaml.load(metadata_string)
 
-    config = load_config()
-    print('config is %s' % config)
-    default_bootstrap_name = config.get('default_template', 'Default')
+    print('Importing from meta.yaml')
+    for template_type in metadata:
+        print(template_type)
+        for entry in metadata[template_type]:
+            # check for all required keys in metadata configuration
+            if 'filename' not in entry and 'url' not in entry:
+                print('Unknown template source! No filename or url in meta.yaml configuration')
+                continue
 
-    default = Template.query.filter(Template.name == default_bootstrap_name).first()
-    if default is None:
-        print('Importing default bootstrap.xml files')
-        default_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/bootstrap.xml'))
+            if 'name' not in entry or 'description' not in entry:
+                print('Unknown template source! No filename or url in meta.yaml configuration')
+                continue
+
+            template_name = entry['name']
+            template_description = entry['description']
+
+            if 'filename' in entry:
+                template_filepath = os.path.join(import_base_directory, template_type, entry['filename'])
+                template_string = _open_template_file(template_filepath)
+            elif 'url' in entry:
+                template_string = _download_template(entry['url'])
+            else:
+                # impossible to get here, but keep pylint warnings at bay
+                print('Unknown template source! No filename or url in meta.yaml configuration')
+                continue
+
+            if template_string is not None:
+                print('Importing template with name {}'.format(template_name))
+                import_template(template_string, template_name, template_description, template_type)
+
+
+def _open_template_file(template_filepath):
+    if os.path.exists(template_filepath):
         try:
-            with open(default_file_path, 'r') as dfpf:
-                t = Template(name=default_bootstrap_name,
-                             description='Default Bootstrap template',
-                             template=dfpf.read(),
-                             type='bootstrap')
+            with open(template_filepath, 'r') as template_file:
+                return template_file.read()
+        except IOError as ioe:
+            print(ioe)
+            return None
 
-            db_session.add(t)
-            db_session.commit()
-        except OSError:
-            print('Could not open file for importing')
 
-    init_cfg_static = Template.query.filter(Template.name == 'init-cfg-static.txt').first()
-    if init_cfg_static is None:
-        print('Importing init-cfg-static')
-        ics_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-static.txt'))
-        try:
-            print('opening file init-cfg-static')
-            with open(ics_file_path, 'r') as icsf:
-                i = Template(name='init-cfg-static.txt',
-                             description='Init-Cfg with static management IP addresses',
-                             template=icsf.read(),
-                             type='init-cfg')
-
-                db_session.add(i)
-                db_session.commit()
-        except OSError:
-            print('Could not open file for importing')
-
-    init_cfg_dhcp = Template.query.filter(Template.name == 'Default Init-Cfg DHCP').first()
-    if init_cfg_dhcp is None:
-        print('Importing default init-cfg-dhcp')
-        icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-dhcp.txt'))
-        try:
-            with open(icd_file_path, 'r') as icdf:
-                i = Template(name='Default Init-Cfg DHCP',
-                             description='Init-Cfg with DHCP Assigned IP addresses',
-                             template=icdf.read(),
-                             type='init-cfg')
-
-                db_session.add(i)
-                db_session.commit()
-        except OSError:
-            print('Could not open file for importing')
-    
-    init_cfg_panorama = Template.query.filter(Template.name == 'Default Init-Cfg panorama').first()
-    if init_cfg_panorama is None:
-        print('Importing default init-cfg-panorama')
-        icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-panorama.txt'))
-        try:
-            with open(icd_file_path, 'r') as icdf:
-                i = Template(name='Default Init-Cfg panorama',
-                             description='Init-Cfg with Panorama and vm-auth-key',
-                             template=icdf.read(),
-                             type='init-cfg')
-
-                db_session.add(i)
-                db_session.commit()
-        except OSError:
-            print('Could not open file for importing')
-
-    init_cfg_complete = Template.query.filter(Template.name == 'Default Init-Cfg complete').first()
-    if init_cfg_complete is None:
-        print('Importing default init-cfg-complete')
-        icd_file_path = os.path.abspath(os.path.join(app.root_path, '..', 'templates/panos/init-cfg-complete.txt'))
-        try:
-            with open(icd_file_path, 'r') as icdf:
-                i = Template(name='Default Init-Cfg complete',
-                             description='Init-Cfg with all available options',
-                             template=icdf.read(),
-                             type='init-cfg')
-
-                db_session.add(i)
-                db_session.commit()
-        except OSError:
-            print('Could not open file for importing')
-
-    rel_import_directory = loaded_config.get('template_import_directory', 'templates/import/bootstrap')
-    import_directory = os.path.abspath(os.path.join(app.root_path, '..', rel_import_directory))
-    all_imported_files = os.listdir(import_directory)
-
-    print('Importing bootstrap templates')
-    for it in all_imported_files:
-        t = Template.query.filter(Template.name == it).first()
-        if t is None:
-            print('this template does not exist %s' % it)
-            try:
-                with open(os.path.join(import_directory, it), 'r') as tf:
-                    t = Template(name=it,
-                                 description="Imported Template",
-                                 template=tf.read(),
-                                 type='bootstrap')
-                    db_session.add(t)
-                    db_session.commit()
-            except OSError:
-                print('Could not import bootstrap template!')
-
-    # FIXME - add init-cfg importing as well (as soon as we need it)
+def _download_template(template_url):
+    try:
+        response = requests.get(template_url)
+        if response.status_code == 200:
+            return response.text
+        else:
+            print(response)
+            return None
+    except HTTPError as he:
+        print(he)
+        return None
 
 
 def build_base_configs(configuration_parameters):
@@ -534,7 +490,6 @@ def build_openstack_heat(base_config, posted_json, archive=False):
 
 
 def compile_template(configuration_parameters):
-
     if 'template_name' not in configuration_parameters:
         raise RequiredParametersError('Not all required keys for bootstrap.xml are present')
 
