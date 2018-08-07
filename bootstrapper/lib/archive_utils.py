@@ -173,61 +173,58 @@ def create_iso(files, archive_name):
     return iso_image
 
 
-def create_s3_bucket(files, bucket_name, location, access_key, secret_key):
-    client = boto3.client('s3',
-                          region_name=location,
-                          aws_access_key_id=access_key,
-                          aws_secret_access_key=secret_key)
+def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
 
-    # aws enforces some rules on bucket names
-    bucket_name = bucket_name.lower() + "-" + str(uuid.uuid4())
+    archive_file_path = _create_archive_directory(files, bucket_prefix)
 
-    print('Checking for existing buckets with name: {}'.format(bucket_name))
-    found = False
-    buckets = client.list_buckets()
-    print(buckets)
-    for bucket in buckets['Buckets']:
-        if bucket['Name'] == bucket_name:
-            found = True
-            print('Found existing bucket!')
-            break
+    bucket_name = bucket_prefix.lower() + "-" + str(uuid.uuid4())
 
-    if not found:
-        try:
-            print('creating bucket {}'.format(bucket_name))
-            response = client.create_bucket(
-                ACL='private',
-                Bucket=bucket_name,
-                CreateBucketConfiguration={
-                    'LocationConstraint': location
-                },
-            )
-            print(response)
-        except ClientError as ce:
-            print('Error creating bucket!')
-            print(ce)
-            return str(ce)
+    try:
+        client = boto3.client('s3',
+                              region_name=location,
+                              aws_access_key_id=access_key,
+                              aws_secret_access_key=secret_key)
 
-    print('creating config')
-    response = client.put_object(Bucket=bucket_name, Body='', Key='config/')
-    print(response)
-    print('creating content')
-    response = client.put_object(Bucket=bucket_name, Body='', Key='content/')
-    print(response)
-    print('creating software')
-    response = client.put_object(Bucket=bucket_name, Body='', Key='software/')
-    print(response)
-    print('creating license')
-    response = client.put_object(Bucket=bucket_name, Body='', Key='license/')
-    print(response)
+    except ClientError as ce:
+        print('Error authenticating to AWS')
+        return str(ce)
 
-    # FIXME does not include content!
-
-    for f in files:
-        contents = cache_utils.get(files[f]['key'])
-        key = files[f]['archive_path'] + '/' + f
-        response = client.put_object(Bucket=bucket_name, Body=contents, Key=key)
+    try:
+        print('creating bucket {}'.format(bucket_name))
+        response = client.create_bucket(
+            ACL='private',
+            Bucket=bucket_name,
+            CreateBucketConfiguration={
+                'LocationConstraint': location
+            },
+        )
         print(response)
+
+        for d in ['config', 'content', 'software', 'license']:
+            print('creating directory of type: {}'.format(d))
+            top_level_dir = '{}/'.format(d)
+            response = client.put_object(Bucket=bucket_name, Body='', Key=top_level_dir)
+            print(response)
+
+            d_dir = os.path.join(archive_file_path, d)
+            for filename in os.listdir(d_dir):
+                print('creating file: {0}'.format(filename))
+                key = '{}/{}'.format(d, filename)
+                file_path = os.path.join(d_dir, filename)
+                with open(file_path, 'rb') as file_object:
+                    contents = file_object.read()
+                    print('{} {} {}'.format(file_path, bucket_name, key))
+                    response = client.put_object(Bucket=bucket_name, Body=contents, Key=key)
+                    print(response)
+
+    except IOError as ioe:
+        print(ioe)
+        return 'Could not read local files for upload'
+
+    except ClientError as ce:
+        print('Error creating bucket!')
+        print(ce)
+        return str(ce)
 
     print('all done')
     return 'S3 bucket {} created successfully'.format(bucket_name)
@@ -235,15 +232,15 @@ def create_s3_bucket(files, bucket_name, location, access_key, secret_key):
 
 def create_azure_fileshare(files, share_prefix, account_name, account_key):
     # generate a unique share name to avoid overlaps in shared infra
-    share_name = "{0}-{1}".format(share_prefix, str(uuid.uuid4()))
-    print('using sahre_name of:')
-    print(share_name)
+    share_name = "{0}-{1}".format(share_prefix.lower(), str(uuid.uuid4()))
+    print('using share_name of: {}'.format(share_name))
 
     archive_file_path = _create_archive_directory(files, share_prefix)
 
     try:
         file_service = FileService(account_name=account_name, account_key=account_key)
 
+        print(file_service)
         if not file_service.exists(share_name):
             file_service.create_share(share_name)
 
@@ -256,6 +253,11 @@ def create_azure_fileshare(files, share_prefix, account_name, account_key):
             for filename in os.listdir(d_dir):
                 print('creating file: {0}'.format(filename))
                 file_service.create_file_from_path(share_name, d, filename, os.path.join(d_dir, filename))
+
+    except AttributeError as ae:
+        # this can be returned on bad auth information
+        print(ae)
+        return "Authentication or other error creating bootstrap file_share in Azure"
 
     except AzureException as ahe:
         print(ahe)
