@@ -13,6 +13,7 @@ PanOS Bootstrapper Utility
    quickstart
    bootstrap_aws
    bootstrap_azure
+   bootstrap_gcp
    usage
    testing
 
