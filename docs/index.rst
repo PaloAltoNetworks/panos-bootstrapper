@@ -11,9 +11,10 @@ PanOS Bootstrapper Utility
    :caption: Contents:
 
    quickstart
+   bootstrap_aws
+   bootstrap_azure
    usage
    testing
-   bootstrap_aws
 
 
 .. _here: https://www.paloaltonetworks.com/documentation/71/pan-os/newfeaturesguide/management-features/bootstrapping-firewalls-for-rapid-deployment
