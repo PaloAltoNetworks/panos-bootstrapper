@@ -61,7 +61,7 @@ def _create_archive_directory(files, archive_name):
         os.makedirs(content_dir)
 
     # iterate through the content updates that is needed for licensed features
-    for package_type in ['appthreat', 'antivirus', 'wildfire']:
+    for package_type in ['appthreat', 'antivirus', 'wildfire', 'wildfire2', 'app']:
         # grab the latest version in the update cache dir (populated manually or via another container volume mount)
         latest_update = check_latest_update(package_type)
         # we have an update
