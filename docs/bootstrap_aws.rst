@@ -31,7 +31,7 @@ Choose Create New Access Key. Then choose Download Key File to save the access k
 Next Steps
 ----------
 
-.. |location_link| raw:: html
-    <a href="https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-in-aws.html" target="_blank">Bootstrap the VM-Series Firewall on AWS </a>
-
 Refer to the official documentation here: |location_link|
+
+.. |location_link| raw:: html
+<a href="https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-in-aws.html" target="_blank">Bootstrap the VM-Series Firewall on AWS </a>
