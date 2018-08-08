@@ -28,3 +28,7 @@ Next Steps
 ----------
 
 Refer to the official documentation here: `Bootstrap the VM-Series Firewall in Azure <https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-in-azure.html>`_
+
+
+.. Note::
+    You may need to open a new browser window to follow links to external sites when viewing these docs in an embedded environment like Bootstrapper-UI

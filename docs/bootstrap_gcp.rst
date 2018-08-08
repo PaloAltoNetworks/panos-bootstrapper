@@ -46,3 +46,6 @@ Next Steps
 ----------
 
 Refer to the official documentation for bootstrapping a VM-Series firewall here: `Bootstrapping Workflow <https://www.paloaltonetworks.com/documentation/80/virtualization/virtualization/bootstrap-the-vm-series-firewall/vm-series-firewall-bootstrap-workflow.html>`_
+
+.. Note::
+    You may need to open a new browser window to follow links to external sites when viewing these docs in an embedded environment like Bootstrapper-UI
