@@ -1,4 +1,4 @@
-Bootstrap on Google Compute Platform
+Bootstrap on Google Cloud Platform
 ====================================
 
 Bootstrapper can build buckets on GCP using custom bootstrap.xml and init-cfg templates. In order to
