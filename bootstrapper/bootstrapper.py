@@ -1,5 +1,6 @@
 import logging
 import sys
+import urllib3
 from urllib.parse import unquote
 
 from flask import Flask
@@ -23,6 +24,9 @@ from .lib import jinja2_filters
 app = Flask(__name__)
 defaults = bootstrapper_utils.load_defaults()
 config = bootstrapper_utils.load_config()
+
+# disable HTTPS warnings
+urllib3.disable_warnings()
 
 
 @app.route('/')
