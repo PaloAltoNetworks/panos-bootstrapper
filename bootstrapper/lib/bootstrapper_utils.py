@@ -367,7 +367,7 @@ def _open_template_file(template_filepath):
 
 def _download_template(template_url):
     try:
-        response = requests.get(template_url)
+        response = requests.get(template_url, verify=False)
         if response.status_code == 200:
             return response.text
         else:

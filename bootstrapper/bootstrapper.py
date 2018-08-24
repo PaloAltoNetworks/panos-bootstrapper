@@ -1,3 +1,5 @@
+import logging
+import sys
 from urllib.parse import unquote
 
 from flask import Flask
@@ -75,7 +77,6 @@ def set_object():
 
 @app.route('/bootstrap_openstack', methods=['POST'])
 def bootstrap_openstack():
-
     try:
         posted_json = request.get_json(force=True)
         base_config = bootstrapper_utils.build_base_configs(posted_json)
@@ -99,7 +100,6 @@ def bootstrap_openstack():
 
 @app.route('/bootstrap_kvm', methods=['POST'])
 def bootstrap_kvm():
-
     try:
         posted_json = request.get_json(force=True)
         base_config = bootstrapper_utils.build_base_configs(posted_json)
@@ -418,6 +418,11 @@ def shutdown_session(exception=None):
 
 @app.before_first_request
 def init_application():
+    # set up logging
+    handler = logging.StreamHandler(sys.stdout)
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.DEBUG)
+
     init_db()
     bootstrapper_utils.import_templates()
 
