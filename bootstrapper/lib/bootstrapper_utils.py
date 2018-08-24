@@ -386,11 +386,14 @@ def build_base_configs(configuration_parameters):
     """
 
     config = load_config()
+    print(config)
     defaults = load_defaults()
+    print(defaults)
     # first check for a custom init-cfg file passed in as a parameter
     if 'init_cfg_template' in configuration_parameters:
         print('found a valid init_cfg_template')
         init_cfg_name = configuration_parameters['init_cfg_template']
+        print('getting template')
         init_cfg_template = get_template(init_cfg_name)
         print(init_cfg_template)
         if init_cfg_template is None:

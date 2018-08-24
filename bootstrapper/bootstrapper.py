@@ -201,6 +201,8 @@ def generate_bootstrap_package():
 
     :return: binary package containing variable interpolated templates
     """
+    print('Using app root path of:')
+    print(app.root_path)
 
     try:
         posted_json = request.get_json(force=True)
@@ -426,8 +428,10 @@ def init_application():
     handler = logging.StreamHandler(sys.stdout)
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.DEBUG)
+    print('Init app')
 
     init_db()
+    print('Importing templates')
     bootstrapper_utils.import_templates()
 
     for f in jinja2_filters.defined_filters:
