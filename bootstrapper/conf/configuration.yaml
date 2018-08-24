@@ -1,5 +1,5 @@
 base_url: http://127.0.0.1:5002
-default_init_cfg: init-cfg-static.txt
+default_init_cfg: Default Init-Cfg
 default_template: Default Bootstrap.xml
 template_import_directory: templates/import/bootstrap
 template_locations: []
