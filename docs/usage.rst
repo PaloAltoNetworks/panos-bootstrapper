@@ -158,7 +158,7 @@ Building a bootstrap package
 In this example, we took the output of the `get_bootstrap_variables` API call, entered our desired `hostname`
 (NGFW-001 in this case) and POSTed that information to the `generate_bootstrap_package` API. This returned an ISO image
 with the desired init-cfg template compiled with our variables. Attaching this ISO to a factory default PanOS firewall
-will result in the firewall booting up with the NGFW-001 hostname configured at boot. f
+will result in the firewall booting up with the NGFW-001 hostname configured at boot.
 
 
 Building a Bootstrap Package with a custom bootstrap.xml
@@ -172,6 +172,7 @@ Once again, let's get all required variables for our selected templates:
 *note that we've included a `bootstrap_template` parameters with the value of a bootstrap template name.
 
 .. code-block:: bash
+
 
     local:curl -X POST -d '{"init_cfg_template": "Default Init-Cfg DHCP", "bootstrap_template": "Default Bootstrap.xml"}'  http://localhost:5000/get_bootstrap_variables | python -m json.tool
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
