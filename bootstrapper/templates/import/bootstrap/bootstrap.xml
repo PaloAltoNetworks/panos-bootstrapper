@@ -2,8 +2,8 @@
 <config version="8.0.0" urldb="paloaltonetworks">
   <mgt-config>
     <users>
-      <entry name="admin">
-        <phash>{{ password|md5_hash }}</phash>
+      <entry name="{{ ADMINISTRATOR_USERNAME }}">
+        <phash>{{ ADMINISTRATOR_PASSWORD | md5_hash }}</phash>
         <permissions>
           <role-based>
             <superuser>yes</superuser>
@@ -13,10 +13,6 @@
     </users>
   </mgt-config>
   <shared>
-    <application/>
-    <application-group/>
-    <service/>
-    <service-group/>
     <botnet>
       <configuration>
         <http>
@@ -73,24 +69,7 @@
     <entry name="localhost.localdomain">
       <network>
         <interface>
-          <ethernet>
-            <entry name="ethernet1/1">
-              <layer3>
-                <ip>
-                  <entry name=""/>
-                </ip>
-                <interface-management-profile>{{ ethernet1_1_profile }}</interface-management-profile>
-              </layer3>
-            </entry>
-            <entry name="ethernet1/2">
-              <layer3>
-                <interface-management-profile>{{ ethernet2_1_profile }}</interface-management-profile>
-                <ip>
-                  <entry name=""/>
-                </ip>
-              </layer3>
-            </entry>
-          </ethernet>
+          <ethernet/>
         </interface>
         <profiles>
           <monitor-profile>
@@ -100,16 +79,6 @@
               <action>wait-recover</action>
             </entry>
           </monitor-profile>
-          <interface-management-profile>
-            <entry name="">
-              <https>yes</https>
-              <ssh>yes</ssh>
-              <ping>yes</ping>
-              <permitted-ip>
-                <entry name="0.0.0.0/0"/>
-              </permitted-ip>
-            </entry>
-          </interface-management-profile>
         </profiles>
         <ike>
           <crypto-profiles>
@@ -264,143 +233,19 @@
                 </dampening-profile>
               </bgp>
             </protocol>
-            <interface>
-              <member>ethernet1/1</member>
-              <member>ethernet1/2</member>
-            </interface>
-            <routing-table>
-              <ip>
-                <static-route>
-                  <entry name="static">
-                    <interface></interface>
-                    <destination></destination>
-                    <nexthop>
-                      <ip-address>{{ default_next_hop }}</ip-address>
-                    </nexthop>
-                  </entry>
-                </static-route>
-              </ip>
-            </routing-table>
           </entry>
         </virtual-router>
       </network>
-      <deviceconfig>
-        <system>
-          <type>
-            <static/>
-          </type>
-          <update-server>updates.paloaltonetworks.com</update-server>
-          <update-schedule>
-            <threats>
-              <recurring>
-                <weekly>
-                  <day-of-week>wednesday</day-of-week>
-                  <at>01:02</at>
-                  <action>download-only</action>
-                </weekly>
-              </recurring>
-            </threats>
-          </update-schedule>
-          <timezone>{{ timezone }}</timezone>
-          <service>
-            <disable-telnet>yes</disable-telnet>
-            <disable-http>yes</disable-http>
-          </service>
-          <hostname>{{ hostname }}</hostname>
-          <ip-address>{{ management_ip }}</ip-address>
-          <netmask>{{ management_mask }}</netmask>
-          <default-gateway>{{ management_gateway }}</default-gateway>
-        </system>
-        <setting>
-          <config>
-            <rematch>yes</rematch>
-          </config>
-          <management>
-            <hostname-type-in-syslog>FQDN</hostname-type-in-syslog>
-          </management>
-          <auto-mac-detect>yes</auto-mac-detect>
-        </setting>
-      </deviceconfig>
+      <deviceconfig/>
       <vsys>
         <entry name="vsys1">
           <application/>
           <application-group/>
-          <zone>
-            <entry name="Internet">
-              <network>
-                <layer3>
-                  <member>ethernet1/1</member>
-                </layer3>
-              </network>
-            </entry>
-            <entry name="Inside">
-              <network>
-                <layer3>
-                  <member>ethernet1/2</member>
-                </layer3>
-              </network>
-            </entry>
-          </zone>
+          <zone/>
           <service/>
           <service-group/>
           <schedule/>
-          <rulebase>
-            <security>
-              <rules>
-                <entry name="">
-                  <from>
-                    <member>any</member>
-                  </from>
-                  <to>
-                    <member>any</member>
-                  </to>
-                  <application>
-                    <member>any</member>
-                  </application>
-                  <service>
-                    <member>any</member>
-                  </service>
-                  <source>
-                    <member>any</member>
-                  </source>
-                  <destination>
-                    <member>any</member>
-                  </destination>
-                  <action>allow</action>
-                  <log-end>yes</log-end>
-                  <source-user>
-                    <member>any</member>
-                  </source-user>
-                </entry>
-              </rules>
-            </security>
-            <nat>
-              <rules>
-                <entry name="SourceNat">
-                  <source-translation>
-                    <dynamic-ip-and-port>
-                      <interface-address>
-                        <interface>ethernet1/1</interface>
-                      </interface-address>
-                    </dynamic-ip-and-port>
-                  </source-translation>
-                  <to>
-                    <member>Internet</member>
-                  </to>
-                  <from>
-                    <member>any</member>
-                  </from>
-                  <source>
-                    <member>any</member>
-                  </source>
-                  <destination>
-                    <member>any</member>
-                  </destination>
-                  <service>any</service>
-                </entry>
-              </rules>
-            </nat>
-          </rulebase>
+          <rulebase/>
         </entry>
       </vsys>
     </entry>

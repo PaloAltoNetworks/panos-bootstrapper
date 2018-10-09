@@ -6,10 +6,11 @@ LABEL version="0.3"
 LABEL maintainer="nembery@paloaltonetworks.com"
 
 WORKDIR /app
+RUN apk add --update --no-cache cdrkit
+RUN apk add gcc musl-dev python3-dev libffi-dev openssl-dev
 ADD requirements.txt /app/requirements.txt
 RUN pip install -r requirements.txt
-RUN apk add --update cdrkit
-
+RUN apk del gcc musl-dev python3-dev libffi-dev openssl-dev
 COPY bootstrapper /app/bootstrapper
 COPY tests /app/tests
 

@@ -1,3 +1,6 @@
+import logging
+import sys
+import urllib3
 from urllib.parse import unquote
 
 from flask import Flask
@@ -16,10 +19,14 @@ from bootstrapper.lib.db import db_session
 from bootstrapper.lib.db import init_db
 from bootstrapper.lib.exceptions import RequiredParametersError
 from bootstrapper.lib.exceptions import TemplateNotFoundError
+from .lib import jinja2_filters
 
 app = Flask(__name__)
 defaults = bootstrapper_utils.load_defaults()
 config = bootstrapper_utils.load_config()
+
+# disable HTTPS warnings
+urllib3.disable_warnings()
 
 
 @app.route('/')
@@ -72,6 +79,116 @@ def set_object():
     return jsonify(key=key, success=True)
 
 
+@app.route('/bootstrap_openstack', methods=['POST'])
+def bootstrap_openstack():
+    try:
+        posted_json = request.get_json(force=True)
+        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        base_config = bootstrapper_utils.build_openstack_heat(base_config, posted_json, archive=True)
+
+        archive = archive_utils.create_archive(base_config, posted_json['hostname'])
+        mime_type = 'application/zip'
+
+        print("archive path is: %s" % archive)
+        if archive is None:
+            abort(500, 'Could not create archive! Check bootstrapper logs for more information')
+
+        return send_file(archive, mimetype=mime_type, as_attachment=True)
+
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
+@app.route('/bootstrap_kvm', methods=['POST'])
+def bootstrap_kvm():
+    try:
+        posted_json = request.get_json(force=True)
+        base_config = bootstrapper_utils.build_base_configs(posted_json)
+
+        archive = archive_utils.create_iso(base_config, posted_json['hostname'])
+        mime_type = 'application/iso-image'
+
+        print("archive path is: %s" % archive)
+        if archive is None:
+            abort(500, 'Could not create archive! Check bootstrapper logs for more information')
+
+        return send_file(archive, mimetype=mime_type, as_attachment=True)
+
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
+@app.route('/bootstrap_aws', methods=['POST'])
+def bootstrap_aws():
+    try:
+        posted_json = request.get_json(force=True)
+        base_config = bootstrapper_utils.build_base_configs(posted_json)
+
+        response = archive_utils.create_s3_bucket(base_config, posted_json['hostname'], posted_json['aws_location'],
+                                                  posted_json['aws_key'], posted_json['aws_secret']
+                                                  )
+        return jsonify(response=response)
+
+    except KeyError as ke:
+        print(ke)
+        abort(400, 'Invalid input parameters! Not all required parameters are present')
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters for basic configuration!')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
+@app.route('/bootstrap_azure', methods=['POST'])
+def bootstrap_azure():
+    try:
+        posted_json = request.get_json(force=True)
+        base_config = bootstrapper_utils.build_base_configs(posted_json)
+
+        response = archive_utils.create_azure_fileshare(base_config, posted_json['hostname'],
+                                                        posted_json['azure_account_name'],
+                                                        posted_json['azure_account_key']
+                                                        )
+        return jsonify(response=response)
+
+    except KeyError as ke:
+        print(ke)
+        abort(400, 'Invalid input parameters! Not all required parameters are present')
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters for basic configuration!')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
+@app.route('/bootstrap_gcp', methods=['POST'])
+def bootstrap_gcp():
+    try:
+        posted_json = request.get_json(force=True)
+        base_config = bootstrapper_utils.build_base_configs(posted_json)
+
+        response = archive_utils.create_gcp_bucket(base_config, posted_json['hostname'],
+                                                   posted_json['gcp_project_id'],
+                                                   posted_json["gcp_access_token"]
+                                                   )
+        return jsonify(response=response)
+
+    except KeyError as ke:
+        print(ke)
+        abort(400, 'Invalid input parameters! Not all required parameters are present')
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters for basic configuration!')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
 @app.route('/generate_bootstrap_package', methods=['POST'])
 def generate_bootstrap_package():
     """
@@ -84,6 +201,8 @@ def generate_bootstrap_package():
 
     :return: binary package containing variable interpolated templates
     """
+    print('Using app root path of:')
+    print(app.root_path)
 
     try:
         posted_json = request.get_json(force=True)
@@ -92,7 +211,7 @@ def generate_bootstrap_package():
     except (BadRequest, RequiredParametersError):
         abort(400, 'Invalid input parameters')
     except TemplateNotFoundError:
-        print('Could not load tempaltes!')
+        print('Could not load templates!')
         abort(500, 'Could not load template!')
 
     # if desired deployment type is openstack, then add the heat templates and whatnot
@@ -113,6 +232,26 @@ def generate_bootstrap_package():
         archive = archive_utils.create_iso(base_config, posted_json['hostname'])
         mime_type = 'application/iso-image'
 
+    elif archive_type == 's3':
+        response = archive_utils.create_s3_bucket(base_config, posted_json['hostname'], posted_json['aws_location'],
+                                                  posted_json['aws_key'], posted_json['aws_secret']
+                                                  )
+        return jsonify(response=response)
+
+    elif archive_type == 'azure':
+        response = archive_utils.create_azure_fileshare(base_config, posted_json['hostname'],
+                                                        posted_json['azure_account_name'],
+                                                        posted_json['azure_account_key']
+                                                        )
+        return jsonify(response=response)
+
+    elif archive_type == 'gcp':
+        response = archive_utils.create_gcp_bucket(base_config, posted_json['hostname'],
+                                                   posted_json['project_id'],
+                                                   posted_json["access_token"]
+                                                   )
+        return jsonify(response=response)
+
     else:
         # no ISO required, just make a zip
         archive = archive_utils.create_archive(base_config, posted_json['hostname'])
@@ -122,7 +261,7 @@ def generate_bootstrap_package():
     if archive is None:
         abort(500, 'Could not create archive! Check bootstrapper logs for more information')
 
-    return send_file(archive, mimetype=mime_type)
+    return send_file(archive, mimetype=mime_type, as_attachment=True)
 
 
 @app.route('/get_bootstrap_variables', methods=['POST'])
@@ -238,6 +377,46 @@ def list_init_cfg_templates():
     return jsonify(success=True, templates=ts, status_code=200)
 
 
+@app.route('/render_template', methods=['POST'])
+def render_db_template():
+    """
+    Renders a template with the posted variables
+    :return: json with 'success', 'message' and 'status' keys
+    """
+    try:
+        posted_json = request.get_json(force=True)
+        return bootstrapper_utils.compile_template(posted_json)
+    except RequiredParametersError as rpe:
+        print(rpe)
+        abort(400, 'Not all required parameters are present in payload')
+    except TemplateNotFoundError as tne:
+        print(tne)
+        abort(500, 'Could not load desired template')
+
+
+@app.route('/get_template_variables', methods=['POST'])
+def get_template_variables():
+    print('Getting variables from a single template')
+    posted_json = request.get_json(force=True)
+
+    if 'template_name' not in posted_json:
+        abort(400, 'Not all required keys for bootstrap.xml are present')
+
+    template_name = posted_json['template_name']
+    required = bootstrapper_utils.get_required_vars_from_template(template_name)
+
+    payload = dict()
+    payload['template_name'] = template_name
+    if 'format' in posted_json and posted_json['format'] == 'aframe':
+        for v in required:
+            payload[v] = "{{ %s }}" % v
+    else:
+        for v in required:
+            payload[v] = ""
+
+    return jsonify(success=True, payload=payload, status_code=200)
+
+
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     db_session.remove()
@@ -245,8 +424,18 @@ def shutdown_session(exception=None):
 
 @app.before_first_request
 def init_application():
+    # set up logging
+    handler = logging.StreamHandler(sys.stdout)
+    app.logger.addHandler(handler)
+    app.logger.setLevel(logging.DEBUG)
+    print('Init app')
+
     init_db()
+    print('Importing templates')
     bootstrapper_utils.import_templates()
+
+    for f in jinja2_filters.defined_filters:
+        app.jinja_env.filters[f] = getattr(jinja2_filters, f)
 
 
 if __name__ == '__main__':

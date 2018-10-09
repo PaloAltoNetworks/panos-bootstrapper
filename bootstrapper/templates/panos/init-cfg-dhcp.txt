@@ -1,4 +1,4 @@
-type=dhcp
+type=dhcp-client
 hostname={{ hostname }}
 dns-primary=
 panorama-server=

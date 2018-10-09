@@ -1,6 +1,5 @@
 import pytest
 from flask import json
-import time
 
 from bootstrapper import bootstrapper
 
@@ -56,7 +55,6 @@ def test_build_openstack_archive(client):
     params = {
         "deployment_type": "openstack",
         "hostname": "panos-81",
-        "auth_key": "v123",
         "archive_type": "zip",
         "management_ip": "192.168.1.100",
         "management_netmask": "255.255.255.0",
@@ -66,9 +64,61 @@ def test_build_openstack_archive(client):
         "inside_ip": "192.168.3.100",
         "ethernet2_1_profile": "PINGSSHTTPS",
         "ethernet1_1_profile": "PINGSSHTTPS",
-        "default_next_hop": "10.10.10.10"
+        "default_next_hop": "10.10.10.10",
+        "dns_primary": "",
+        "ipv6_address": "",
+        "vm_auth_key": "abc123",
+        "panorama_server_2": "",
+        "panorama_server": "",
+        "tpl_name": "",
+        "op_command_modes": "",
+        "dhcp_or_static": "dhcp-client",
+        "dhcp_accept_server_hostname": "",
+        "default_gateway": "",
+        "dg_name": "",
+        "dhcp_send_hostname": "",
+        "netmask": "",
+        "dns_secondary": "",
+        "ip_address": "",
+        "bootstrap_template": "None",
+        "init_cfg_template": "Default Init-Cfg",
+        "dhcp_send_client_id": "",
+        "dhcp_accept_server_domain": "",
+        "ipv6_default_gateway": "{{ ipv6_default_gateway }}"
     }
     r = client.post('/generate_bootstrap_package', data=json.dumps(params), content_type='application/json')
+    assert r.status_code == 200
+
+
+def test_render_template(client):
+    """
+    Test render_template
+    :param client: test client
+    :return: test assertions
+    """
+    print("Test: Render Template".center(79, '-'))
+
+    params = {
+        "ADMINISTRATOR_USERNAME": "{{ ADMINISTRATOR_USERNAME }}",
+        "ADMINISTRATOR_PASSWORD": "{{ ADMINISTRATOR_PASSWORD }}",
+        "FW_NAME": "{{ FW_NAME }}",
+        "MGMT_TYPE": "{{ MGMT_TYPE }}",
+        "template_name": "Iron-Skillet",
+        "DNS_1": "{{ DNS_1 }}",
+        "DNS_2": "{{ DNS_2 }}",
+        "NTP_1": "{{ NTP_1 }}",
+        "NTP_2": "{{ NTP_2 }}",
+        "SYSLOG_SERVER": "{{ SYSLOG_SERVER }}",
+        "EMAIL_PROFILE_TO": "{{ EMAIL_PROFILE_TO }}",
+        "EMAIL_PROFILE_FROM": "{{ EMAIL_PROFILE_FROM }}",
+        "EMAIL_PROFILE_GATEWAY": "{{ EMAIL_PROFILE_GATEWAY }}",
+        "SINKHOLE_IPV4": "{{ SINKHOLE_IPV4 }}",
+        "SINKHOLE_IPV6": "{{ SINKHOLE_IPV6 }}",
+        "MGMT_DG": "{{ MGMT_DG }}",
+        "MGMT_IP": "{{ MGMT_IP }}",
+        "MGMT_MASK": "{{ MGMT_MASK }}"
+    }
+    r = client.post('/render_template', data=json.dumps(params), content_type='application/json')
     assert r.status_code == 200
 
 
@@ -174,4 +224,3 @@ def test_delete_template(client):
     }
     m = client.post('/delete_template', data=json.dumps(params), content_type='application/json')
     assert m.status_code == 200
-
