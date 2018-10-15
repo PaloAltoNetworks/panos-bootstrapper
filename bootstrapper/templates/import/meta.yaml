@@ -3,6 +3,9 @@ bootstrap:
   - name: Default Bootstrap.xml
     description: PanOS Version 8.0 Baseline configuration
     filename: bootstrap.xml
+  - name: Panorama Bootstrap.xml
+    description: PanOS Version 8.1 Baseline configuration with Panorama
+    filename: bootstrap_panorama.xml
   - name: Iron-Skillet
     description: PanOS Version 8.0 Hardened Iron-Skillet configuration
     url: https://raw.githubusercontent.com/scotchoaf/iron-skillet/panos_v8.0/templates/panos/full/iron_skillet_day1_template.xml
