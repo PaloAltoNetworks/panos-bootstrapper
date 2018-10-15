@@ -16,6 +16,7 @@ COPY tests /app/tests
 
 EXPOSE 5000
 ENV FLASK_APP=/app/bootstrapper/bootstrapper.py
+ENV PATH /app/bootstrapper:$PATH
 
 #ENTRYPOINT ["python"]
 CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]

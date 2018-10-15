@@ -327,6 +327,35 @@ def import_template():
         return r
 
 
+@app.route('/update_template', methods=['POST'])
+def update_template():
+    """
+    Updates a template
+    :return: json with 'success', 'message' and 'status' keys
+    """
+    posted_json = request.get_json(force=True)
+    try:
+        name = posted_json['name']
+        encoded_template = posted_json['template']
+        description = posted_json.get('description', 'Imported Template')
+        template_type = posted_json.get('type', 'bootstrap')
+        template = unquote(encoded_template)
+
+    except KeyError:
+        print("Not all required keys are present!")
+        r = jsonify(message="Not all required keys for add template are present", success=False, status_code=400)
+        r.status_code = 400
+        return r
+    print('Updating template with name: %s' % name)
+    if bootstrapper_utils.edit_template(template, name, description, template_type):
+        return jsonify(success=True, message='Updated Template Successfully', status_code=200)
+    else:
+        r = jsonify(success=False, message='Could not import template repository to the configuration',
+                    status_code=500)
+        r.status_code = 500
+        return r
+
+
 @app.route('/delete_template', methods=['POST'])
 def delete_template():
     """
@@ -352,6 +381,11 @@ def delete_template():
 
 @app.route('/list_templates', methods=['GET'])
 def list_templates():
+    """
+    Lists all templates, returns a list of dicts with the following keys:
+    name, type, description
+    :return:
+    """
     ts = bootstrapper_utils.list_bootstrap_templates()
     return jsonify(success=True, templates=ts, status_code=200)
 
@@ -428,11 +462,16 @@ def init_application():
     handler = logging.StreamHandler(sys.stdout)
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.DEBUG)
-    print('Init app')
+    print('Init App')
 
-    init_db()
-    print('Importing templates')
-    bootstrapper_utils.import_templates()
+    import os
+    if not os.path.exists('/var/tmp/.bootstrap_complete'):
+
+        init_db()
+        print('Importing templates')
+        bootstrapper_utils.import_templates()
+        with open('/var/tmp/.bootstrap_complete', 'w+') as init_complete:
+            init_complete.write('done')
 
     for f in jinja2_filters.defined_filters:
         app.jinja_env.filters[f] = getattr(jinja2_filters, f)

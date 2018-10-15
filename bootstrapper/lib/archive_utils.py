@@ -17,7 +17,7 @@ from google.api_core.exceptions import BadRequest
 
 from . import cache_utils
 
-_archive_dir = '/tmp/bootstrapper/archives'
+_archive_dir = '/var/tmp/bootstrapper'
 _content_update_dir = '/var/tmp/content_updates/'
 
 log = logging.getLogger(__name__)
@@ -186,7 +186,7 @@ def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
                               aws_secret_access_key=secret_key)
 
     except ClientError as ce:
-        print('Error authenticating to AWS')
+        print('Error: authenticating to AWS')
         return str(ce)
 
     try:
@@ -219,7 +219,7 @@ def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
 
     except IOError as ioe:
         print(ioe)
-        return 'Could not read local files for upload'
+        return 'Error: Could not read local files for upload'
 
     except ClientError as ce:
         print('Error creating bucket!')
@@ -240,7 +240,7 @@ def create_azure_fileshare(files, share_prefix, account_name, account_key):
     try:
         file_service = FileService(account_name=account_name, account_key=account_key)
 
-        print(file_service)
+        # print(file_service)
         if not file_service.exists(share_name):
             file_service.create_share(share_name)
 

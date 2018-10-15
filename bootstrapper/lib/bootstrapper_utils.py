@@ -92,7 +92,7 @@ def import_template(template, template_name, description, template_type='bootstr
         t = Template.query.filter(Template.name == template_name).first()
 
         if t is None:
-            print('Adding new record to db')
+            # print('Adding new record to db')
             unescaped_template = unescape(template)
             t = Template(name=template_name, description=description, template=unescaped_template, type=template_type)
             db_session.add(t)
@@ -100,6 +100,40 @@ def import_template(template, template_name, description, template_type='bootstr
 
         else:
             print('template exists in db')
+
+        return True
+    except SQLAlchemyError as sqe:
+        print('Could not import file')
+        print(str(sqe))
+        return False
+
+
+def edit_template(template, template_name, description, template_type='bootstrap'):
+    """
+    Edits template into the templates/imports directory and saves the metadata into the app config
+    :param template: string of the template text
+    :param template_name: name of the file to save
+    :param description: description to save in the configured templates
+    :param template_type: type of the template to save. Enum with options 'bootstrap', 'init-cfg', and 'config-snippet'
+
+    :return: boolean
+    """
+    try:
+        t = Template.query.filter(Template.name == template_name).first()
+
+        if t is None:
+            print('Adding new record to db')
+            unescaped_template = unescape(template)
+            t = Template(name=template_name, description=description, template=unescaped_template, type=template_type)
+            db_session.add(t)
+            db_session.commit()
+
+        else:
+            t.description = description
+            t.template = template
+            t.template_type = template_type
+            db_session.add(t)
+            db_session.commit()
 
         return True
     except SQLAlchemyError as sqe:
@@ -319,14 +353,14 @@ def import_templates():
     metadata = dict()
     print(metadata_config)
     if os.path.exists(metadata_config):
-        print('loading metadata')
+        # print('loading metadata')
         with open(metadata_config, 'r') as metadata_file:
             metadata_string = metadata_file.read()
             metadata = yaml.load(metadata_string)
 
     print('Importing from meta.yaml')
     for template_type in metadata:
-        print(template_type)
+        # print(template_type)
         for entry in metadata[template_type]:
             # check for all required keys in metadata configuration
             if 'filename' not in entry and 'url' not in entry:
@@ -386,28 +420,28 @@ def build_base_configs(configuration_parameters):
     """
 
     config = load_config()
-    print(config)
+    # print(config)
     defaults = load_defaults()
-    print(defaults)
+    # print(defaults)
     # first check for a custom init-cfg file passed in as a parameter
     if 'init_cfg_template' in configuration_parameters:
-        print('found a valid init_cfg_template')
+        # print('found a valid init_cfg_template')
         init_cfg_name = configuration_parameters['init_cfg_template']
-        print('getting template')
+        # print('getting template')
         init_cfg_template = get_template(init_cfg_name)
-        print(init_cfg_template)
+        # print(init_cfg_template)
         if init_cfg_template is None:
             init_cfg_template = get_template(config.get('default_init_cfg', 'init-cfg-static.txt'))
     else:
-        print('using default init-cfg')
+        # print('using default init-cfg')
         init_cfg_name = config.get('default_init_cfg', 'init-cfg-static.txt')
         init_cfg_template = get_template(init_cfg_name)
 
     if init_cfg_template is None:
-        print('init-cfg-template template was None')
+        # print('init-cfg-template template was None')
         raise TemplateNotFoundError('Could not load %s' % init_cfg_name)
 
-    print('getting required_keys')
+    # print('getting required_keys')
     common_required_keys = get_required_vars_from_template(init_cfg_name)
 
     if not common_required_keys.issubset(configuration_parameters):
@@ -423,6 +457,16 @@ def build_base_configs(configuration_parameters):
     base_config['init-cfg.txt']['archive_path'] = 'config'
     base_config['init-cfg.txt']['url'] = config["base_url"] + '/get/' + init_cfg_key
 
+    # use a consistent variable name for authcodes, but keep the old auth_key for backwards compat
+    if 'auth_code' in configuration_parameters:
+        configuration_parameters['auth_key'] = configuration_parameters['auth_code']
+
+    if 'authcode' in configuration_parameters:
+        configuration_parameters['auth_key'] = configuration_parameters['authcode']
+
+    if 'authcodes' in configuration_parameters:
+        configuration_parameters['auth_key'] = configuration_parameters['authcodes']
+
     if 'auth_key' in configuration_parameters:
         authcode = render_template('panos/authcodes', **configuration_parameters)
         authcode_key = cache_utils.set(authcode)
@@ -431,18 +475,20 @@ def build_base_configs(configuration_parameters):
         base_config['authcodes']['archive_path'] = 'license'
         base_config['authcodes']['url'] = config["base_url"] + '/get/' + init_cfg_key
 
-    if 'bootstrap_template' in configuration_parameters and configuration_parameters['bootstrap_template'] != 'None':
-        print('Using a bootstrap_template here')
-        print(configuration_parameters['bootstrap_template'])
+    if 'bootstrap_template' in configuration_parameters \
+            and configuration_parameters['bootstrap_template'] != 'None' \
+            and configuration_parameters['bootstrap_template'] != '':
+        # print('Using a bootstrap_template here')
+        # print(configuration_parameters['bootstrap_template'])
         bootstrap_template_name = configuration_parameters['bootstrap_template']
-        print(bootstrap_template_name)
+        # print(bootstrap_template_name)
         bootstrap_config = generate_boostrap_config_with_defaults(defaults, configuration_parameters)
 
         bootstrap_template = get_template(bootstrap_template_name)
         if bootstrap_template is None:
             raise TemplateNotFoundError('Could not load bootstrap template!')
 
-        print("checking bootstrap required_variables")
+        # print("checking bootstrap required_variables")
         if not verify_data(bootstrap_template, bootstrap_config):
             raise RequiredParametersError('Not all required keys for bootstrap.xml are present')
 

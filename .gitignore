@@ -2,6 +2,7 @@
 .idea
 .pytest_cache
 venv
+python3_venv
 .DS_Store
 docs/_build
 docs/_static

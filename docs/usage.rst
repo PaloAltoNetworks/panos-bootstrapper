@@ -164,7 +164,7 @@ will result in the firewall booting up with the NGFW-001 hostname configured at 
 Building a Bootstrap Package with a custom bootstrap.xml
 --------------------------------------------------------
 
-In the previos example, we only built a package that included the init-cfg.txt file. However, you can also include
+In the previous example, we only built a package that included the init-cfg.txt file. However, you can also include
 a complete firewall configuration using a `bootstrap.xml` file.
 
 
@@ -218,4 +218,55 @@ This output now includes the variables required for both the init-cfg template a
               <hostname>NGFW-003</hostname>
 
 
+
+Using the bootstrapper-cli 
+==========================
+
+If you do not want to have the bootstrapper service always available via a REST interface, you can use the 
+bootstrapper-cli interface.
+
+.. code-block:: bash
+
+    cat /tmp/bootstrapper_cli_example.yaml
+    ---
+    dhcp_or_static: dhcp-client
+    ip_address:
+    default_gateway:
+    netmask:
+    ipv6_address:
+    ipv6_default_gateway:
+    hostname: my-example-hostname
+    panorama_server:
+    panorama_server_2:
+    tpl_name:
+    dg_name:
+    dns_primary:
+    dns_secondary:
+    op_command_modes:
+    dhcp_send_hostname:
+    dhcp_send_client_id:
+    dhcp_accept_server_hostname:
+    dhcp_accept_server_domain:
+    vm_auth_key:
+    auth_code: VALID_AUTHCODE_HERE
+
+and launch with:
+
+.. code-block:: bash
+
+    docker run -it --rm -v "$(pwd):/var/tmp" -w /var/tmp nembery/panos_bootstrapper  bootstrap.sh build_bootstrap_iso bootstrapper_cli_example.yaml
+
+
+You can also use this interface to build bootstrap archives in all the various public clouds. For AWS for example:
+
+.. code-block/;: bash
+
+    docker run -it --rm -v "$(pwd):/var/tmp" -w /var/tmp -e AWS_LOCATION=$(echo $AWS_LOCATION) -e AWS_ACCESS_KEY=$(echo $AWS_ACCESS_KEY) -e AWS_SECRET_KEY=$(echo $AWS_SECRET_KEY) nembery/panos_bootstrapper  bootstrap.sh build_bootstrap_aws bootstrapper_cli_example.yaml
+
+
+Azure is similar. Set the appropriate environment variables then run the build_bootstrap_azure command:
+
+.. code-block:: bash
+
+    docker run -it --rm -v "$(pwd):/var/tmp" -w /var/tmp -e AZURE_STORAGE_ACCESS_KEY=$(echo $AZURE_STORAGE_ACCESS_KEY) -e AZURE_STORAGE_ACCOUNT=$(echo $AZURE_STORAGE_ACCOUNT) nembery/panos_bootstrapper  bootstrap.sh build_bootstrap_azure bootstrapper_cli_example.yaml
 
