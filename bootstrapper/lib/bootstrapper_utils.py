@@ -301,14 +301,16 @@ def get_bootstrap_variables(requested_templates):
     print('getting bootstrap variables')
     available_variables = list()
 
-    init_cfg_name = requested_templates.get('init_cfg_template', 'init-cfg-static.txt')
+    init_cfg_name = requested_templates.get('init_cfg_template', 'Default Init-Cfg')
     bootstrap_name = requested_templates.get('bootstrap_template', None)
-
+    print('Getting init cfg vars')
     init_cfg_vars = get_required_vars_from_template(init_cfg_name)
     for i in init_cfg_vars:
         available_variables.append(i)
 
-    if bootstrap_name != "None" or bootstrap_name is not None:
+    print('Getting bootstrap vars')
+    if bootstrap_name != "None" and bootstrap_name is not None:
+        print('WHAT??')
         vs = get_required_vars_from_template(bootstrap_name)
         for b in vs:
             available_variables.append(b)
@@ -419,6 +421,7 @@ def build_base_configs(configuration_parameters):
     :return: dict containing 'bootstrap.xml', 'authcodes', and 'init-cfg-static.txt' keys
     """
 
+    print('here we go')
     config = load_config()
     # print(config)
     defaults = load_defaults()
@@ -427,24 +430,38 @@ def build_base_configs(configuration_parameters):
     if 'init_cfg_template' in configuration_parameters:
         # print('found a valid init_cfg_template')
         init_cfg_name = configuration_parameters['init_cfg_template']
-        # print('getting template')
+        print(init_cfg_name)
+        # handled pre 1.0 payloads with incorrect default init-cfg template names
+        if init_cfg_name == 'Default Init-Cfg Static':
+            init_cfg_name = 'Default Init-Cfg'
+
+        print(init_cfg_name)
         init_cfg_template = get_template(init_cfg_name)
         # print(init_cfg_template)
         if init_cfg_template is None:
-            init_cfg_template = get_template(config.get('default_init_cfg', 'init-cfg-static.txt'))
+            init_cfg_template = get_template(config.get('default_init_cfg', 'Default Init-Cfg'))
     else:
         # print('using default init-cfg')
-        init_cfg_name = config.get('default_init_cfg', 'init-cfg-static.txt')
+        init_cfg_name = config.get('default_init_cfg', 'Default Init-Cfg')
         init_cfg_template = get_template(init_cfg_name)
 
     if init_cfg_template is None:
         # print('init-cfg-template template was None')
         raise TemplateNotFoundError('Could not load %s' % init_cfg_name)
 
-    # print('getting required_keys')
-    common_required_keys = get_required_vars_from_template(init_cfg_name)
+    # dhcp by default if nothing specified
+    if 'dhcp_or_static' not in configuration_parameters:
+        configuration_parameters['dhcp_or_static'] = 'dhcp-client'
 
-    if not common_required_keys.issubset(configuration_parameters):
+    print('getting required_keys')
+    # if user specifies a type instead of our template specific variable name, let's help them out here
+    if 'type' in configuration_parameters:
+        configuration_parameters['dhcp_or_static'] = configuration_parameters['type']
+
+    # create a set of vars that must be present in the request
+    init_cfg_vars = {'hostname', 'dhcp_or_static'}
+
+    if not init_cfg_vars.issubset(configuration_parameters):
         print("Not all required keys are present for build_base_config!!")
         raise RequiredParametersError("Not all required keys are present for build_base_config!!")
 
@@ -478,6 +495,7 @@ def build_base_configs(configuration_parameters):
     if 'bootstrap_template' in configuration_parameters \
             and configuration_parameters['bootstrap_template'] != 'None' \
             and configuration_parameters['bootstrap_template'] != '':
+        print('loading bootstrap_template')
         # print('Using a bootstrap_template here')
         # print(configuration_parameters['bootstrap_template'])
         bootstrap_template_name = configuration_parameters['bootstrap_template']
@@ -567,3 +585,4 @@ def unescape(s):
     s = s.replace("&#39;", "'")
     s = s.replace("\\n", "\n")
     return s
+

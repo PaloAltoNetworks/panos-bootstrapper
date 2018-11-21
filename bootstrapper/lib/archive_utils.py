@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import tarfile
 import uuid
 
 import boto3
@@ -171,6 +172,50 @@ def create_iso(files, archive_name):
 
     log.info('Created %s successfully' % iso_image)
     return iso_image
+
+
+def create_tgz(files, archive_name):
+    """
+    Creates an gzipped tarball of the desired files with the desired structure.
+    :param files: A dict of files with the following structure:
+        files = {
+                    "FILENAME":
+                    {
+                        "archive_path": "RELATIVE_PATH"
+                        "key": "CACHE_KEY_TO_CONTENTS"
+                    }
+                }
+    Each key of the dict is a filename that will be created. The contents of the file will be retrieved from the cache
+    system using the cache_utils library. The file will be placed in the relative path given by the 'archive_path'
+    :param archive_name: the name of the archive to create
+    :return: path to the newly created tgz archive or None on error
+    """
+
+    archive_file_path = _create_archive_directory(files, archive_name)
+    if archive_file_path is None:
+        log.error('Could not create archive directory structure')
+        return None
+
+    tar_file = archive_file_path + '.tgz'
+    try:
+        rv = os.system(
+            f'tar -C {archive_file_path} -czvf {tar_file} .'
+        )
+        if rv != 0:
+            print("Cold not make ISO Image!")
+            return None
+
+    except [ValueError, OSError]:
+        print("Could not make ISO Image")
+        log.error('Could not make ISO image')
+        return None
+
+    # tar_file = archive_file_path + '.tgz'
+    # tar = tarfile.open(tar_file, "w:gz", compresslevel=1)
+    # tar.add(archive_file_path, arcname='./')
+
+    log.info('Created %s successfully' % tar_file)
+    return tar_file
 
 
 def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):

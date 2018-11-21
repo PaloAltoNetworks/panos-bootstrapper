@@ -68,8 +68,8 @@ def set_object():
     Adds an serializable object to the cache
     :return: json encoded string with dict containing key and success keys
     """
-    posted_json = request.get_json(force=True)
-    contents = posted_json.get('contents', None)
+    input_params = request.get_json() or request.form.to_dict()
+    contents = input_params.get('contents', None)
     if contents is None:
         r = jsonify(message="Not all required keys are present", success=False, status_code=400)
         r.status_code = 400
@@ -82,11 +82,11 @@ def set_object():
 @app.route('/bootstrap_openstack', methods=['POST'])
 def bootstrap_openstack():
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
-        base_config = bootstrapper_utils.build_openstack_heat(base_config, posted_json, archive=True)
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
+        base_config = bootstrapper_utils.build_openstack_heat(base_config, input_params, archive=True)
 
-        archive = archive_utils.create_archive(base_config, posted_json['hostname'])
+        archive = archive_utils.create_archive(base_config, input_params['hostname'])
         mime_type = 'application/zip'
 
         print("archive path is: %s" % archive)
@@ -105,10 +105,10 @@ def bootstrap_openstack():
 @app.route('/bootstrap_kvm', methods=['POST'])
 def bootstrap_kvm():
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
 
-        archive = archive_utils.create_iso(base_config, posted_json['hostname'])
+        archive = archive_utils.create_iso(base_config, input_params['hostname'])
         mime_type = 'application/iso-image'
 
         print("archive path is: %s" % archive)
@@ -124,14 +124,36 @@ def bootstrap_kvm():
         abort(500, 'Could not load template!')
 
 
+@app.route('/bootstrap_kvm', methods=['POST'])
+def bootstrap_openstack_tgz():
+    try:
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
+
+        archive = archive_utils.create_tgz(base_config, input_params['hostname'])
+        mime_type = 'application/gzip'
+
+        print("archive path is: %s" % archive)
+        if archive is None:
+            abort(500, 'Could not create tgz archive! Check bootstrapper logs for more information')
+
+        return send_file(archive, mimetype=mime_type, as_attachment=True)
+
+    except (BadRequest, RequiredParametersError):
+        abort(400, 'Invalid input parameters')
+    except TemplateNotFoundError:
+        print('Could not load templates!')
+        abort(500, 'Could not load template!')
+
+
 @app.route('/bootstrap_aws', methods=['POST'])
 def bootstrap_aws():
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
 
-        response = archive_utils.create_s3_bucket(base_config, posted_json['hostname'], posted_json['aws_location'],
-                                                  posted_json['aws_key'], posted_json['aws_secret']
+        response = archive_utils.create_s3_bucket(base_config, input_params['hostname'], input_params['aws_location'],
+                                                  input_params['aws_key'], input_params['aws_secret']
                                                   )
         return jsonify(response=response)
 
@@ -148,12 +170,12 @@ def bootstrap_aws():
 @app.route('/bootstrap_azure', methods=['POST'])
 def bootstrap_azure():
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
 
-        response = archive_utils.create_azure_fileshare(base_config, posted_json['hostname'],
-                                                        posted_json['azure_account_name'],
-                                                        posted_json['azure_account_key']
+        response = archive_utils.create_azure_fileshare(base_config, input_params['hostname'],
+                                                        input_params['azure_account_name'],
+                                                        input_params['azure_account_key']
                                                         )
         return jsonify(response=response)
 
@@ -170,12 +192,12 @@ def bootstrap_azure():
 @app.route('/bootstrap_gcp', methods=['POST'])
 def bootstrap_gcp():
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        base_config = bootstrapper_utils.build_base_configs(input_params)
 
-        response = archive_utils.create_gcp_bucket(base_config, posted_json['hostname'],
-                                                   posted_json['gcp_project_id'],
-                                                   posted_json["gcp_access_token"]
+        response = archive_utils.create_gcp_bucket(base_config, input_params['hostname'],
+                                                   input_params['gcp_project_id'],
+                                                   input_params["gcp_access_token"]
                                                    )
         return jsonify(response=response)
 
@@ -203,58 +225,69 @@ def generate_bootstrap_package():
     """
     print('Using app root path of:')
     print(app.root_path)
-
+    input_params = dict()
     try:
-        posted_json = request.get_json(force=True)
-        base_config = bootstrapper_utils.build_base_configs(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        print(input_params)
+        base_config = bootstrapper_utils.build_base_configs(input_params)
 
     except (BadRequest, RequiredParametersError):
-        abort(400, 'Invalid input parameters')
+        vs = bootstrapper_utils.get_bootstrap_variables(input_params)
+        err_string = '\nRequired variables: hostname'
+        err_string += '\nOptional variables: '
+        for v in vs:
+            err_string += '%s ' % v
+        print('aborting')
+        abort(400, 'Invalid input parameters %s' % err_string)
     except TemplateNotFoundError:
         print('Could not load templates!')
         abort(500, 'Could not load template!')
 
     # if desired deployment type is openstack, then add the heat templates and whatnot
-    if 'deployment_type' in posted_json and posted_json['deployment_type'] == 'openstack':
+    if 'deployment_type' in input_params and input_params['deployment_type'] == 'openstack':
         try:
-            base_config = bootstrapper_utils.build_openstack_heat(base_config, posted_json, archive=True)
+            base_config = bootstrapper_utils.build_openstack_heat(base_config, input_params, archive=True)
         except RequiredParametersError:
             abort(400, 'Could not parse JSON data')
 
-    if 'hostname' not in posted_json:
+    if 'hostname' not in input_params:
         abort(400, 'No hostname found in posted data')
 
     # if the user supplies an 'archive_type' parameter we can return either a ZIP or ISO
-    archive_type = posted_json.get('archive_type', 'iso')
+    archive_type = input_params.get('archive_type', 'zip')
 
     # user has specified they want an ISO built
     if archive_type == 'iso':
-        archive = archive_utils.create_iso(base_config, posted_json['hostname'])
+        archive = archive_utils.create_iso(base_config, input_params['hostname'])
         mime_type = 'application/iso-image'
 
+    elif archive_type == 'tgz':
+        archive = archive_utils.create_tgz(base_config, input_params['hostname'])
+        mime_type = 'application/gzip'
+
     elif archive_type == 's3':
-        response = archive_utils.create_s3_bucket(base_config, posted_json['hostname'], posted_json['aws_location'],
-                                                  posted_json['aws_key'], posted_json['aws_secret']
+        response = archive_utils.create_s3_bucket(base_config, input_params['hostname'], input_params['aws_location'],
+                                                  input_params['aws_key'], input_params['aws_secret']
                                                   )
         return jsonify(response=response)
 
     elif archive_type == 'azure':
-        response = archive_utils.create_azure_fileshare(base_config, posted_json['hostname'],
-                                                        posted_json['azure_account_name'],
-                                                        posted_json['azure_account_key']
+        response = archive_utils.create_azure_fileshare(base_config, input_params['hostname'],
+                                                        input_params['azure_account_name'],
+                                                        input_params['azure_account_key']
                                                         )
         return jsonify(response=response)
 
     elif archive_type == 'gcp':
-        response = archive_utils.create_gcp_bucket(base_config, posted_json['hostname'],
-                                                   posted_json['project_id'],
-                                                   posted_json["access_token"]
+        response = archive_utils.create_gcp_bucket(base_config, input_params['hostname'],
+                                                   input_params['project_id'],
+                                                   input_params["access_token"]
                                                    )
         return jsonify(response=response)
 
     else:
         # no ISO required, just make a zip
-        archive = archive_utils.create_archive(base_config, posted_json['hostname'])
+        archive = archive_utils.create_archive(base_config, input_params['hostname'])
         mime_type = 'application/zip'
 
     print("archive path is: %s" % archive)
@@ -267,26 +300,26 @@ def generate_bootstrap_package():
 @app.route('/get_bootstrap_variables', methods=['POST'])
 def get_bootstrap_variables():
     print('Compiling variables required in payload to generate a valid bootstrap archive')
-    posted_json = request.get_json(force=True)
-    vs = bootstrapper_utils.get_bootstrap_variables(posted_json)
+    input_params = request.get_json() or request.form.to_dict()
+    vs = bootstrapper_utils.get_bootstrap_variables(input_params)
     payload = dict()
 
     payload['archive_type'] = "iso"
     payload['deployment_type'] = "kvm"
 
-    if 'bootstrap_template' in posted_json and posted_json['bootstrap_template'] is not None:
-        print('Using bootstrap %s' % posted_json['bootstrap_template'])
-        payload['bootstrap_template'] = posted_json['bootstrap_template']
+    if 'bootstrap_template' in input_params and input_params['bootstrap_template'] is not None:
+        print('Using bootstrap %s' % input_params['bootstrap_template'])
+        payload['bootstrap_template'] = input_params['bootstrap_template']
     else:
         print('No bootstrap file requested')
 
-    if 'init_cfg_template' in posted_json and posted_json['init_cfg_template'] is not None:
+    if 'init_cfg_template' in input_params and input_params['init_cfg_template'] is not None:
         print('Setting init_cfg_name')
-        payload['init_cfg_template'] = posted_json['init_cfg_template']
+        payload['init_cfg_template'] = input_params['init_cfg_template']
     else:
         print('No init_cfg file requested')
 
-    if 'format' in posted_json and posted_json['format'] == 'aframe':
+    if 'format' in input_params and input_params['format'] == 'aframe':
         for v in vs:
             payload[v] = "{{ %s }}" % v
     else:
@@ -302,12 +335,12 @@ def import_template():
     Adds a template location to the configuration
     :return: json with 'success', 'message' and 'status' keys
     """
-    posted_json = request.get_json(force=True)
+    input_params = request.get_json() or request.form.to_dict()
     try:
-        name = posted_json['name']
-        encoded_template = posted_json['template']
-        description = posted_json.get('description', 'Imported Template')
-        template_type = posted_json.get('type', 'bootstrap')
+        name = input_params['name']
+        encoded_template = input_params['template']
+        description = input_params.get('description', 'Imported Template')
+        template_type = input_params.get('type', 'bootstrap')
         template = unquote(encoded_template)
 
     except KeyError:
@@ -333,12 +366,12 @@ def update_template():
     Updates a template
     :return: json with 'success', 'message' and 'status' keys
     """
-    posted_json = request.get_json(force=True)
+    input_params = request.get_json() or request.form.to_dict()
     try:
-        name = posted_json['name']
-        encoded_template = posted_json['template']
-        description = posted_json.get('description', 'Imported Template')
-        template_type = posted_json.get('type', 'bootstrap')
+        name = input_params['name']
+        encoded_template = input_params['template']
+        description = input_params.get('description', 'Imported Template')
+        template_type = input_params.get('type', 'bootstrap')
         template = unquote(encoded_template)
 
     except KeyError:
@@ -359,12 +392,12 @@ def update_template():
 @app.route('/delete_template', methods=['POST'])
 def delete_template():
     """
-    Adds a template location to the configuration
+    Deletes a template from the db
     :return: json with 'success', 'message' and 'status' keys
     """
-    posted_json = request.get_json(force=True)
+    input_params = request.get_json() or request.form.to_dict()
     try:
-        name = posted_json['template_name']
+        name = input_params['template_name']
     except KeyError:
         print("Not all required keys are present!")
         r = jsonify(message="Not all required keys for add template are present", success=False, status_code=400)
@@ -392,9 +425,9 @@ def list_templates():
 
 @app.route('/get_template', methods=['POST'])
 def get_template():
-    posted_json = request.get_json(force=True)
+    input_params = request.get_json() or request.form.to_dict()
     try:
-        name = posted_json['template_name']
+        name = input_params['template_name']
     except KeyError:
         print("Not all required keys are present!")
         r = jsonify(message="Not all required keys for add template are present", success=False, status_code=400)
@@ -418,8 +451,8 @@ def render_db_template():
     :return: json with 'success', 'message' and 'status' keys
     """
     try:
-        posted_json = request.get_json(force=True)
-        return bootstrapper_utils.compile_template(posted_json)
+        input_params = request.get_json() or request.form.to_dict()
+        return bootstrapper_utils.compile_template(input_params)
     except RequiredParametersError as rpe:
         print(rpe)
         abort(400, 'Not all required parameters are present in payload')
@@ -431,17 +464,17 @@ def render_db_template():
 @app.route('/get_template_variables', methods=['POST'])
 def get_template_variables():
     print('Getting variables from a single template')
-    posted_json = request.get_json(force=True)
+    input_params = request.get_json() or request.form.to_dict()
 
-    if 'template_name' not in posted_json:
+    if 'template_name' not in input_params:
         abort(400, 'Not all required keys for bootstrap.xml are present')
 
-    template_name = posted_json['template_name']
+    template_name = input_params['template_name']
     required = bootstrapper_utils.get_required_vars_from_template(template_name)
 
     payload = dict()
     payload['template_name'] = template_name
-    if 'format' in posted_json and posted_json['format'] == 'aframe':
+    if 'format' in input_params and input_params['format'] == 'aframe':
         for v in required:
             payload[v] = "{{ %s }}" % v
     else:
