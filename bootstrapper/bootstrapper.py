@@ -332,7 +332,10 @@ def get_bootstrap_variables():
 @app.route('/import_template', methods=['POST'])
 def import_template():
     """
-    Adds a template location to the configuration
+    Adds a template to the db
+    required keys are [name, template, description, type]
+    template must be properly quoted for example using urllib3.quote
+    see: https://docs.python.org/3/library/urllib.parse.html#urllib.parse.quote
     :return: json with 'success', 'message' and 'status' keys
     """
     input_params = request.get_json() or request.form.to_dict()
