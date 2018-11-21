@@ -13,7 +13,8 @@ Generate a minimal Bootstrap Archive
 
 
 .. code-block:: bash
-    curl -J -O  -X POST -d "hostname=PANOS-01"  localhost:5001/generate_bootstrap_package
+
+    local:~ operator$ curl -J -O  -X POST -d "hostname=PANOS-01"  localhost:5001/generate_bootstrap_package
     % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
     100  138M  100  138M  100    22  17.9M      2  0:00:11  0:00:07  0:00:04 30.6M
@@ -26,7 +27,7 @@ Controlling the output format
 
 .. code-block:: bash
 
-    curl -J -O  -X POST -d "hostname=PANOS-TEST-01" -d "archive_type=iso"  localhost:5001/generate_bootstrap_package
+   local:~ operator$ curl -J -O  -X POST -d "hostname=PANOS-TEST-01" -d "archive_type=iso"  localhost:5001/generate_bootstrap_package
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100  138M  100  138M  100    39  37.5M     10  0:00:03  0:00:03 --:--:-- 37.5M
@@ -39,7 +40,7 @@ Using JSON Input
 
 .. code-block:: bash
 
-    curl -J -O  -X POST -d '{"hostname": "PANOS-TEST-02", "archive_type": "iso"}'  -H "Content-Type: application/json" localhost:5001/generate_bootstrap_package
+    local:~ operator$ curl -J -O  -X POST -d '{"hostname": "PANOS-TEST-02", "archive_type": "iso"}'  -H "Content-Type: application/json" localhost:5001/generate_bootstrap_package
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100  138M  100  138M  100    52  32.9M     12  0:00:04  0:00:04 --:--:-- 34.6M
