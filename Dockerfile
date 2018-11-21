@@ -2,7 +2,7 @@
 FROM python:alpine
 
 LABEL description="Panos Bootstrap Builder Tool"
-LABEL version="0.3"
+LABEL version="0.8.8"
 LABEL maintainer="nembery@paloaltonetworks.com"
 
 WORKDIR /app
