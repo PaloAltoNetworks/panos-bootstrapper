@@ -224,3 +224,13 @@ def test_delete_template(client):
     }
     m = client.post('/delete_template', data=json.dumps(params), content_type='application/json')
     assert m.status_code == 200
+
+
+def test_urlencoded_min(client):
+    """
+    Tests minimal required information with urlencoded values
+    :param client:
+    :return: test assertions
+    """
+    r = client.post('/generate_bootstrap_package', data={'hostname': 'test123'})
+    assert r.status_code == 200
