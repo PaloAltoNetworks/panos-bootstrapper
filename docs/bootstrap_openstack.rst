@@ -22,7 +22,7 @@ More Information
 
 To complete the bootstrap process, refer to the official documentation:
 
-`https://www.paloaltonetworks.com/documentation/81/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-on-kvm/bootstrap-the-vm-series-firewall-on-kvm-in-openstack`_
+`Bootstrap the VM-Series Firewall on KVM in OpenStack <https://www.paloaltonetworks.com/documentation/81/virtualization/virtualization/bootstrap-the-vm-series-firewall/bootstrap-the-vm-series-firewall-on-kvm/bootstrap-the-vm-series-firewall-on-kvm-in-openstack>`_
 
 
 .. Note::
