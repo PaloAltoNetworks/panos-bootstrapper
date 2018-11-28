@@ -202,7 +202,7 @@ Building a bootstrap package
 In this example, we took the output of the `get_bootstrap_variables` API call, entered our desired `hostname`
 (NGFW-001 in this case) and POSTed that information to the `generate_bootstrap_package` API. This returned an ISO image
 with the desired init-cfg template compiled with our variables. Attaching this ISO to a factory default PanOS firewall
-will result in the firewall booting up with the NGFW-001 hostname configured at boot. f
+will result in the firewall booting up with the NGFW-001 hostname configured at boot.
 
 
 Building a Bootstrap Package with a custom bootstrap.xml
@@ -218,8 +218,8 @@ Once again, let's get all required variables for our selected templates:
 
 .. code-block:: bash
 
-    local:curl -X POST -d '{"init_cfg_template": "Default Init-Cfg DHCP", "bootstrap_template": "Default Bootstrap.xml"}' -H "Content-Type: application/json"  http://localhost:5000/get_bootstrap_variables | python -m json.tool
-      % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+    local:curl -X POST -d '{"init_cfg_template": "Default Init-Cfg", "bootstrap_template": "Default Bootstrap.xml"}' -H "Content-Type: application/json"  http://localhost:5000/get_bootstrap_variables | python -m json.tool
+    % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100   438  100   345  100    93  19049   5135 --:--:-- --:--:-- --:--:-- 19166
     {
@@ -231,7 +231,7 @@ Once again, let's get all required variables for our selected templates:
             "ethernet1_1_profile": "",
             "ethernet2_1_profile": "",
             "hostname": "",
-            "init_cfg_template": "Default Init-Cfg DHCP",
+            "init_cfg_template": "Default Init-Cfg",
             "management_gateway": "",
             "management_ip": "",
             "management_mask": "",
@@ -246,7 +246,7 @@ This output now includes the variables required for both the init-cfg template a
 
 .. code-block:: bash
 
-    local:~ operator$ curl -X POST -d '{ "archive_type": "iso", "bootstrap_template": "Default Bootstrap.xml", "default_next_hop": "10.0.1.1", "deployment_type": "kvm", "ethernet1_1_profile": "PING", "ethernet2_1_profile": "PING", "hostname": "NGFW-003", "init_cfg_template": "Default Init-Cfg DHCP", "management_gateway": "10.0.1.1", "management_ip": "10.0.1.129", "management_mask": "255.255.255.0", "timezone": "NewYork"}' -H "Content-Type: application/json"  http://localhost:5000/generate_bootstrap_package -o NGFW-003.iso
+    local:~ operator$ curl -X POST -d '{ "archive_type": "iso", "bootstrap_template": "Default Bootstrap.xml", "default_next_hop": "10.0.1.1", "deployment_type": "kvm", "ethernet1_1_profile": "PING", "ethernet2_1_profile": "PING", "hostname": "NGFW-003", "init_cfg_template": "Default Init-Cfg", "management_gateway": "10.0.1.1", "management_ip": "10.0.1.129", "management_mask": "255.255.255.0", "timezone": "NewYork"}' -H "Content-Type: application/json"  http://localhost:5000/generate_bootstrap_package -o NGFW-003.iso
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100  394k  100  394k  100   385  7857k   7678 --:--:-- --:--:-- --:--:-- 7880k
