@@ -40,7 +40,7 @@ Using JSON Input
 
 .. code-block:: bash
 
-    local:~ operator$ curl -J -O  -X POST -d '{"hostname": "PANOS-TEST-02", "archive_type": "iso"}'  -H "Content-Type: application/json" localhost:5001/generate_bootstrap_package
+    local:~ operator$ curl -J -O  -X POST -d '{"hostname": "PANOS-TEST-02", "archive_type": "iso"}' -H "Content-Type: application/json" localhost:5001/generate_bootstrap_package
       % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                      Dload  Upload   Total   Spent    Left  Speed
     100  138M  100  138M  100    52  32.9M     12  0:00:04  0:00:04 --:--:-- 34.6M

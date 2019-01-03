@@ -13,7 +13,7 @@ to date.
 .. code-block:: bash
 
     docker build -t panos_bootstrapper:v0.4 .
-    docker run --entrypoint python -p 8002:5000 --name panos_bootstrapper panos_bootstrapper:v0.4 /app/bootstrapper/bootstrapper.py
+    docker run -p 5002:5000 -e PYTHONUNBUFFERED=0 nembery/panos_bootstrapper
 
 
 Standalone
