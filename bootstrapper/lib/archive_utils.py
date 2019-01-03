@@ -157,6 +157,11 @@ def create_iso(files, archive_name):
 
     iso_image = archive_file_path + '.iso'
     try:
+        has_mkisofs = os.system('which mkisofs')
+        if has_mkisofs != 0:
+            print('No mkisofs binary available to create ISO images')
+            return None
+
         rv = os.system(
             'mkisofs -J -R -v -V bootstrap -A bootstrap -ldots -l '
             '-allow-lowercase -allow-multidot -o %s %s' % (iso_image, archive_file_path)

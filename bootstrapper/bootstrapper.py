@@ -192,7 +192,7 @@ def bootstrap_azure():
 @app.route('/bootstrap_gcp', methods=['POST'])
 def bootstrap_gcp():
     try:
-        input_params = request.get_json() or request.form.to_dict()
+        input_params = bootstrapper_utils.normalize_input_params(request)
         base_config = bootstrapper_utils.build_base_configs(input_params)
 
         response = archive_utils.create_gcp_bucket(base_config, input_params['hostname'],
@@ -227,14 +227,15 @@ def generate_bootstrap_package():
     print(app.root_path)
     input_params = dict()
     try:
-        input_params = request.get_json() or request.form.to_dict()
+        # input_params = request.get_json() or request.form.to_dict()
+        input_params = bootstrapper_utils.normalize_input_params(request)
         print(input_params)
         base_config = bootstrapper_utils.build_base_configs(input_params)
 
     except (BadRequest, RequiredParametersError):
-        vs = bootstrapper_utils.get_bootstrap_variables(input_params)
         err_string = '\nRequired variables: hostname'
         err_string += '\nOptional variables: '
+        vs = bootstrapper_utils.get_bootstrap_variables(input_params)
         for v in vs:
             err_string += '%s ' % v
         print('aborting')
@@ -245,6 +246,7 @@ def generate_bootstrap_package():
 
     # if desired deployment type is openstack, then add the heat templates and whatnot
     if 'deployment_type' in input_params and input_params['deployment_type'] == 'openstack':
+        print('Including openstack')
         try:
             base_config = bootstrapper_utils.build_openstack_heat(base_config, input_params, archive=True)
         except RequiredParametersError:
@@ -292,6 +294,7 @@ def generate_bootstrap_package():
 
     print("archive path is: %s" % archive)
     if archive is None:
+        print('Aborting with no archive created')
         abort(500, 'Could not create archive! Check bootstrapper logs for more information')
 
     return send_file(archive, mimetype=mime_type, as_attachment=True)
@@ -300,12 +303,11 @@ def generate_bootstrap_package():
 @app.route('/get_bootstrap_variables', methods=['POST'])
 def get_bootstrap_variables():
     print('Compiling variables required in payload to generate a valid bootstrap archive')
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
     vs = bootstrapper_utils.get_bootstrap_variables(input_params)
     payload = dict()
 
-    payload['archive_type'] = "iso"
-    payload['deployment_type'] = "kvm"
+    payload['archive_type'] = "tgz"
 
     if 'bootstrap_template' in input_params and input_params['bootstrap_template'] is not None:
         print('Using bootstrap %s' % input_params['bootstrap_template'])
@@ -338,7 +340,7 @@ def import_template():
     see: https://docs.python.org/3/library/urllib.parse.html#urllib.parse.quote
     :return: json with 'success', 'message' and 'status' keys
     """
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
     try:
         name = input_params['name']
         encoded_template = input_params['template']
@@ -369,7 +371,7 @@ def update_template():
     Updates a template
     :return: json with 'success', 'message' and 'status' keys
     """
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
     try:
         name = input_params['name']
         encoded_template = input_params['template']
@@ -398,7 +400,7 @@ def delete_template():
     Deletes a template from the db
     :return: json with 'success', 'message' and 'status' keys
     """
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
     try:
         name = input_params['template_name']
     except KeyError:
@@ -428,7 +430,7 @@ def list_templates():
 
 @app.route('/get_template', methods=['POST'])
 def get_template():
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
     try:
         name = input_params['template_name']
     except KeyError:
@@ -454,7 +456,7 @@ def render_db_template():
     :return: json with 'success', 'message' and 'status' keys
     """
     try:
-        input_params = request.get_json() or request.form.to_dict()
+        input_params = bootstrapper_utils.normalize_input_params(request)
         return bootstrapper_utils.compile_template(input_params)
     except RequiredParametersError as rpe:
         print(rpe)
@@ -467,7 +469,7 @@ def render_db_template():
 @app.route('/get_template_variables', methods=['POST'])
 def get_template_variables():
     print('Getting variables from a single template')
-    input_params = request.get_json() or request.form.to_dict()
+    input_params = bootstrapper_utils.normalize_input_params(request)
 
     if 'template_name' not in input_params:
         abort(400, 'Not all required keys for bootstrap.xml are present')

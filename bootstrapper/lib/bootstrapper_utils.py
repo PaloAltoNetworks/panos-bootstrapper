@@ -1,3 +1,4 @@
+import json
 import os
 
 import jinja2
@@ -7,10 +8,12 @@ from flask import Flask
 from flask import g
 from flask import render_template
 from flask import render_template_string
+from flask import request
 from jinja2 import TemplateSyntaxError
 from jinja2 import meta
 from requests.exceptions import HTTPError
 from sqlalchemy.exc import SQLAlchemyError
+from werkzeug.exceptions import BadRequest
 
 from bootstrapper.lib import cache_utils
 from bootstrapper.lib import openstack_utils
@@ -573,6 +576,40 @@ def compile_template(configuration_parameters):
     return render_template_string(template, **configuration_parameters)
 
 
+def normalize_input_params(r: request) -> dict:
+    # first check if this is JSON
+    if r.is_json:
+        try:
+            return r.get_json()
+        except BadRequest as br:
+            print('Could not Parse JSON input')
+            raise BadRequest('Could not parse JSON input!')
+
+    # not JSON, check for URL form encoded
+    else:
+        form_dict = r.form.to_dict()
+        if len(form_dict) == 1:
+            # we have a dict it only contains a single thing
+            first_key = list(form_dict)[0]
+            first_val = form_dict[first_key]
+            print(first_key)
+            print(first_val)
+            if first_val == '':
+                # there is no value here, maybe the user supplied JSON with the wront content-type?
+                # this can look like {'{"k":"v"}':''}
+                try:
+                    data = json.loads(first_key)
+                    print('JSON data with url-form-encoded content-type detected')
+                    return data
+                except ValueError as ve:
+                    # nope, not JSON - bail out here
+                    print('Input was not key value pairs and not valid JSON! Bailing out')
+                    raise RequiredParametersError('Not all required keys are present')
+
+        # default to return the form_dict here
+        return form_dict
+
+
 def unescape(s):
     """
     :param s: String - string that should be have html entities removed
@@ -585,4 +622,3 @@ def unescape(s):
     s = s.replace("&#39;", "'")
     s = s.replace("\\n", "\n")
     return s
-
