@@ -2,13 +2,14 @@
 FROM python:alpine
 
 LABEL description="Panos Bootstrap Builder Tool"
-LABEL version="0.8.8"
+LABEL version="0.8.9"
 LABEL maintainer="nembery@paloaltonetworks.com"
 
 WORKDIR /app
 RUN apk add --update --no-cache cdrkit
 RUN apk add gcc musl-dev python3-dev libffi-dev openssl-dev
 ADD requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 RUN apk del gcc musl-dev python3-dev libffi-dev openssl-dev
 COPY bootstrapper /app/bootstrapper
