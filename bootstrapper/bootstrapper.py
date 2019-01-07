@@ -223,13 +223,10 @@ def generate_bootstrap_package():
 
     :return: binary package containing variable interpolated templates
     """
-    print('Using app root path of:')
-    print(app.root_path)
     input_params = dict()
     try:
         # input_params = request.get_json() or request.form.to_dict()
         input_params = bootstrapper_utils.normalize_input_params(request)
-        print(input_params)
         base_config = bootstrapper_utils.build_base_configs(input_params)
 
     except (BadRequest, RequiredParametersError):
@@ -238,10 +235,10 @@ def generate_bootstrap_package():
         vs = bootstrapper_utils.get_bootstrap_variables(input_params)
         for v in vs:
             err_string += '%s ' % v
-        print('aborting')
+        print('aborting due to bad request, invalid params')
         abort(400, 'Invalid input parameters %s' % err_string)
     except TemplateNotFoundError:
-        print('Could not load templates!')
+        print('aborting, Could not load templates!')
         abort(500, 'Could not load template!')
 
     # if desired deployment type is openstack, then add the heat templates and whatnot
@@ -308,6 +305,7 @@ def get_bootstrap_variables():
     payload = dict()
 
     payload['archive_type'] = "tgz"
+    payload['auth_code'] = "VALID-PAN-AUTH-CODE"
 
     if 'bootstrap_template' in input_params and input_params['bootstrap_template'] is not None:
         print('Using bootstrap %s' % input_params['bootstrap_template'])

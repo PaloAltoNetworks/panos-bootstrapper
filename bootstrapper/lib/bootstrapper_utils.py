@@ -1,5 +1,6 @@
 import json
 import os
+from base64 import urlsafe_b64decode
 
 import jinja2
 import requests
@@ -426,50 +427,8 @@ def build_base_configs(configuration_parameters):
 
     print('here we go')
     config = load_config()
-    # print(config)
-    defaults = load_defaults()
-    # print(defaults)
-    # first check for a custom init-cfg file passed in as a parameter
-    if 'init_cfg_template' in configuration_parameters:
-        # print('found a valid init_cfg_template')
-        init_cfg_name = configuration_parameters['init_cfg_template']
-        print(init_cfg_name)
-        # handled pre 1.0 payloads with incorrect default init-cfg template names
-        if init_cfg_name == 'Default Init-Cfg Static':
-            init_cfg_name = 'Default Init-Cfg'
-
-        print(init_cfg_name)
-        init_cfg_template = get_template(init_cfg_name)
-        # print(init_cfg_template)
-        if init_cfg_template is None:
-            init_cfg_template = get_template(config.get('default_init_cfg', 'Default Init-Cfg'))
-    else:
-        # print('using default init-cfg')
-        init_cfg_name = config.get('default_init_cfg', 'Default Init-Cfg')
-        init_cfg_template = get_template(init_cfg_name)
-
-    if init_cfg_template is None:
-        # print('init-cfg-template template was None')
-        raise TemplateNotFoundError('Could not load %s' % init_cfg_name)
-
-    # dhcp by default if nothing specified
-    if 'dhcp_or_static' not in configuration_parameters:
-        configuration_parameters['dhcp_or_static'] = 'dhcp-client'
-
-    print('getting required_keys')
-    # if user specifies a type instead of our template specific variable name, let's help them out here
-    if 'type' in configuration_parameters:
-        configuration_parameters['dhcp_or_static'] = configuration_parameters['type']
-
-    # create a set of vars that must be present in the request
-    init_cfg_vars = {'hostname', 'dhcp_or_static'}
-
-    if not init_cfg_vars.issubset(configuration_parameters):
-        print("Not all required keys are present for build_base_config!!")
-        raise RequiredParametersError("Not all required keys are present for build_base_config!!")
-
-    init_cfg_contents = render_template_string(init_cfg_template, **configuration_parameters)
-    init_cfg_key = cache_utils.set(init_cfg_contents)
+    # first create an init-cfg.txt from the supplied parameters
+    init_cfg_key = create_init_cfg(configuration_parameters)
 
     base_config = dict()
     base_config['init-cfg.txt'] = dict()
@@ -495,10 +454,87 @@ def build_base_configs(configuration_parameters):
         base_config['authcodes']['archive_path'] = 'license'
         base_config['authcodes']['url'] = config["base_url"] + '/get/' + init_cfg_key
 
-    if 'bootstrap_template' in configuration_parameters \
+    bootstrap_cache_key = create_bootstrap_xml(configuration_parameters)
+    if bootstrap_cache_key is not None:
+        base_config['bootstrap.xml'] = dict()
+        base_config['bootstrap.xml']['key'] = bootstrap_cache_key
+        base_config['bootstrap.xml']['archive_path'] = 'config'
+        base_config['bootstrap.xml']['url'] = config["base_url"] + '/get/' + bootstrap_cache_key
+
+    return base_config
+
+
+def create_init_cfg(configuration_parameters):
+    if 'init_cfg_str' in configuration_parameters:
+        # user has supplied a base64 encoded init-cfg.txt file for our use
+        init_cfg_str = configuration_parameters['init_cfg_str']
+        init_cfg_bytes = urlsafe_b64decode(init_cfg_str)
+        init_cfg_contents = init_cfg_bytes.decode('utf-8')
+
+    else:
+        if 'init_cfg_template' in configuration_parameters:
+            # the user has supplied an init_cfg_template to use, now verify we have all the required variables
+            init_cfg_name = configuration_parameters['init_cfg_template']
+            # handled pre 1.0 payloads with incorrect default init-cfg template names
+            if init_cfg_name == 'Default Init-Cfg Static':
+                init_cfg_name = 'Default Init-Cfg'
+
+            print(init_cfg_name)
+            init_cfg_template = get_template(init_cfg_name)
+            # print(init_cfg_template)
+            if init_cfg_template is None:
+                init_cfg_template = get_template('Default Init-Cfg')
+        else:
+            init_cfg_name = 'Default Init-Cfg'
+            init_cfg_template = get_template(init_cfg_name)
+
+        if init_cfg_template is None:
+            # print('init-cfg-template template was None')
+            raise TemplateNotFoundError('Could not load %s' % init_cfg_name)
+
+        # dhcp by default if nothing specified
+        if 'dhcp_or_static' not in configuration_parameters:
+            if 'ip_address' in configuration_parameters and configuration_parameters['ip_address'] != '':
+                configuration_parameters['dhcp_or_static'] = 'static'
+            else:
+                configuration_parameters['dhcp_or_static'] = 'dhcp-client'
+
+        print('getting required_keys for init-cfg.txt')
+        # if user specifies a type instead of our template specific variable name, let's help them out here
+        if 'type' in configuration_parameters:
+            configuration_parameters['dhcp_or_static'] = configuration_parameters['type']
+
+        # create a set of vars that must be present in the request
+        init_cfg_vars = {'hostname', 'dhcp_or_static'}
+
+        if not init_cfg_vars.issubset(configuration_parameters):
+            print("Not all required keys are present for build_base_config!!")
+            raise RequiredParametersError("Not all required keys are present for init-cfg.txt!!")
+
+        init_cfg_contents = render_template_string(init_cfg_template, **configuration_parameters)
+
+    print(init_cfg_contents)
+    init_cfg_key = cache_utils.set(init_cfg_contents)
+
+    return init_cfg_key
+
+
+def create_bootstrap_xml(configuration_parameters):
+
+    if 'bootstrap_str' in configuration_parameters \
+            and configuration_parameters['bootstrap_str'] != 'None' \
+            and configuration_parameters['bootstrap_str'] != '':
+        # user has supplied a base64 encoded init-cfg.txt file for our use
+        bootstrap_str = configuration_parameters['bootstrap_str']
+        bootstrap_bytes = urlsafe_b64decode(bootstrap_str)
+        bootstrap_contents = bootstrap_bytes.decode('utf-8')
+        return cache_utils.set(bootstrap_contents)
+
+    elif 'bootstrap_template' in configuration_parameters \
             and configuration_parameters['bootstrap_template'] != 'None' \
             and configuration_parameters['bootstrap_template'] != '':
         print('loading bootstrap_template')
+        defaults = load_defaults()
         # print('Using a bootstrap_template here')
         # print(configuration_parameters['bootstrap_template'])
         bootstrap_template_name = configuration_parameters['bootstrap_template']
@@ -513,15 +549,11 @@ def build_base_configs(configuration_parameters):
         if not verify_data(bootstrap_template, bootstrap_config):
             raise RequiredParametersError('Not all required keys for bootstrap.xml are present')
 
-        bootstrap_xml = render_template_string(bootstrap_template, **bootstrap_config)
-        bs_key = cache_utils.set(bootstrap_xml)
-
-        base_config['bootstrap.xml'] = dict()
-        base_config['bootstrap.xml']['key'] = bs_key
-        base_config['bootstrap.xml']['archive_path'] = 'config'
-        base_config['bootstrap.xml']['url'] = config["base_url"] + '/get/' + bs_key
-
-    return base_config
+        bootstrap_contents = render_template_string(bootstrap_template, **bootstrap_config)
+        # set the bootstrap_xml file in the cache and return the key
+        return cache_utils.set(bootstrap_contents)
+    else:
+        return None
 
 
 def build_openstack_heat(base_config, posted_json, archive=False):
@@ -579,6 +611,7 @@ def compile_template(configuration_parameters):
 def normalize_input_params(r: request) -> dict:
     # first check if this is JSON
     if r.is_json:
+        print('got some json here')
         try:
             return r.get_json()
         except BadRequest as br:
@@ -587,6 +620,7 @@ def normalize_input_params(r: request) -> dict:
 
     # not JSON, check for URL form encoded
     else:
+        print('no json here')
         form_dict = r.form.to_dict()
         if len(form_dict) == 1:
             # we have a dict it only contains a single thing

@@ -41,7 +41,9 @@ def _create_archive_directory(files, archive_name):
     :return: path to the newly created directory or None on error
     """
     log.info('_create_archive_directory with name %s' % archive_name)
-    archive_file_path = os.path.join(_archive_dir, archive_name)
+
+    archive_base_dir = os.path.join(_archive_dir, str(uuid.uuid4()))
+    archive_file_path = os.path.join(archive_base_dir, archive_name)
 
     try:
         if not os.path.exists(archive_file_path):
@@ -53,11 +55,11 @@ def _create_archive_directory(files, archive_name):
     # create skeleton structure for PanOS devices
     # if we ever need to build packages that are not destined for panos devices, then this should be
     # refactored and the skeleton dirs should be done in the build_base_config function
-    config_dir = os.path.join(_archive_dir, archive_name, 'config')
+    config_dir = os.path.join(archive_base_dir, archive_name, 'config')
     if not os.path.exists(config_dir):
         os.makedirs(config_dir)
 
-    content_dir = os.path.join(_archive_dir, archive_name, 'content')
+    content_dir = os.path.join(archive_base_dir, archive_name, 'content')
     if not os.path.exists(content_dir):
         os.makedirs(content_dir)
 
@@ -72,16 +74,16 @@ def _create_archive_directory(files, archive_name):
             # copy the file from the content cache dir into the archive dir
             shutil.copyfile(latest_update, destination_file)
 
-    software_dir = os.path.join(_archive_dir, archive_name, 'software')
+    software_dir = os.path.join(archive_base_dir, archive_name, 'software')
     if not os.path.exists(software_dir):
         os.makedirs(software_dir)
 
-    license_dir = os.path.join(_archive_dir, archive_name, 'license')
+    license_dir = os.path.join(archive_base_dir, archive_name, 'license')
     if not os.path.exists(license_dir):
         os.makedirs(license_dir)
 
     for f in files:
-        archive_file_dir = os.path.join(_archive_dir, archive_name, files[f]['archive_path'])
+        archive_file_dir = os.path.join(archive_base_dir, archive_name, files[f]['archive_path'])
         archive_file = os.path.abspath(os.path.join(archive_file_dir, f))
 
         try:
