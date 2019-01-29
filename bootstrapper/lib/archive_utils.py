@@ -1,20 +1,17 @@
 import logging
 import os
 import shutil
-import tarfile
 import uuid
 
 import boto3
+import requests
+from azure.common import AzureException
 from azure.storage.file import FileService
-
-from azure.common import AzureException, AzureHttpError
-
 from botocore.exceptions import ClientError
+from google.api_core.exceptions import BadRequest
 from google.auth.exceptions import GoogleAuthError
 from google.cloud import storage
 from google.oauth2.credentials import Credentials
-
-from google.api_core.exceptions import BadRequest
 
 from . import cache_utils
 
@@ -226,7 +223,6 @@ def create_tgz(files, archive_name):
 
 
 def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
-
     archive_file_path = _create_archive_directory(files, bucket_prefix)
 
     bucket_name = bucket_prefix.lower() + "-" + str(uuid.uuid4())
@@ -290,7 +286,11 @@ def create_azure_fileshare(files, share_prefix, account_name, account_key):
     archive_file_path = _create_archive_directory(files, share_prefix)
 
     try:
-        file_service = FileService(account_name=account_name, account_key=account_key)
+        # ignore SSL warnings - bad form, but SSL Decrypt causes issues with this
+        s = requests.Session()
+        s.verify = False
+
+        file_service = FileService(account_name=account_name, account_key=account_key, request_session=s)
 
         # print(file_service)
         if not file_service.exists(share_name):
@@ -323,7 +323,6 @@ def create_azure_fileshare(files, share_prefix, account_name, account_key):
 
 
 def create_gcp_bucket(files, bucket_prefix, project_id, access_token):
-
     archive_file_path = _create_archive_directory(files, bucket_prefix)
 
     try:

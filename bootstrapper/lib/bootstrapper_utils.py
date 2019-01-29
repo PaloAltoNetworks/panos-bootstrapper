@@ -611,7 +611,6 @@ def compile_template(configuration_parameters):
 def normalize_input_params(r: request) -> dict:
     # first check if this is JSON
     if r.is_json:
-        print('got some json here')
         try:
             return r.get_json()
         except BadRequest as br:

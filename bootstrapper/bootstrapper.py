@@ -294,12 +294,34 @@ def generate_bootstrap_package():
         mime_type = 'application/gzip'
 
     elif archive_type == 's3':
+        required_keys = {'aws_location', 'aws_secret', 'aws_key'}
+        if not required_keys.issubset(input_params):
+            r = jsonify(
+                message=f"Not all required keys for archive_type: {archive_type} are "
+                f"present. Required are {required_keys}",
+                success=False,
+                status_code=400
+            )
+            r.status_code = 400
+            return r
+
         response = archive_utils.create_s3_bucket(base_config, input_params['hostname'], input_params['aws_location'],
                                                   input_params['aws_key'], input_params['aws_secret']
                                                   )
         return jsonify(response=response)
 
     elif archive_type == 'azure':
+        required_keys = {'azure_account_name', 'azure_account_key'}
+        if not required_keys.issubset(input_params):
+            r = jsonify(
+                message=f"Not all required keys for archive_type: {archive_type} are "
+                f"present. Required are {required_keys}",
+                success=False,
+                status_code=400
+            )
+            r.status_code = 400
+            return r
+
         response = archive_utils.create_azure_fileshare(base_config, input_params['hostname'],
                                                         input_params['azure_account_name'],
                                                         input_params['azure_account_key']
@@ -307,6 +329,16 @@ def generate_bootstrap_package():
         return jsonify(response=response)
 
     elif archive_type == 'gcp':
+        required_keys = {'project_id', 'access_token'}
+        if not required_keys.issubset(input_params):
+            r = jsonify(
+                message=f"Not all required keys for archive_type: {archive_type} are "
+                f"present. Required are {required_keys}",
+                success=False,
+                status_code=400
+            )
+            r.status_code = 400
+            return r
         response = archive_utils.create_gcp_bucket(base_config, input_params['hostname'],
                                                    input_params['project_id'],
                                                    input_params["access_token"]
