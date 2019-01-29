@@ -9,7 +9,7 @@ Some examples are given below:
 
 
 Generate a minimal Bootstrap Archive
------------------------------------
+------------------------------------
 
 
 .. code-block:: bash
@@ -240,6 +240,7 @@ Once again, let's get all required variables for our selected templates:
         "status_code": 200,
         "success": true
     }
+
 
 This output now includes the variables required for both the init-cfg template as well as the bootstrap template.
 

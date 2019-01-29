@@ -1,3 +1,32 @@
+# Copyright (c) 2018, Palo Alto Networks
+#
+# Permission to use, copy, modify, and/or distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+# Author: Nathan Embery nembery@paloaltonetworks.com
+
+"""
+Palo Alto Networks panos- bootstrapper
+
+panos-bootstrapper is a tool to build bootstrap packages for Pan-OS devices.
+
+This tool provides an API that can be consumed by other automation tools such as Ansible or Salt.
+
+Please see http://panos-bootstrapper.readthedocs.io for more information
+
+This software is provided without support, warranty, or guarantee.
+Use at your own risk.
+"""
+
 import logging
 import sys
 import urllib3
@@ -33,7 +62,7 @@ urllib3.disable_warnings()
 def index():
     """
     Default route, return simple HTML page
-    :return:  index.htnl template
+    :return:  index.html template
     """
     return render_template('index.html', title='PanOS Bootstrap Utility')
 
@@ -502,7 +531,6 @@ def init_application():
 
     import os
     if not os.path.exists('/var/tmp/.bootstrap_complete'):
-
         init_db()
         print('Importing templates')
         bootstrapper_utils.import_templates()
