@@ -206,12 +206,12 @@ def create_tgz(files, archive_name):
             f'tar -C {archive_file_path} -czvf {tar_file} .'
         )
         if rv != 0:
-            print("Cold not make ISO Image!")
+            print("Cold not make tgz Image!")
             return None
 
     except [ValueError, OSError]:
-        print("Could not make ISO Image")
-        log.error('Could not make ISO image')
+        print("Could not make tgz Image")
+        log.error('Could not make tgz image')
         return None
 
     # tar_file = archive_file_path + '.tgz'
