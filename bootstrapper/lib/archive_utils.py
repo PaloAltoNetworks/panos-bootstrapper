@@ -49,7 +49,7 @@ def _create_archive_directory(files, archive_name):
         log.error('Could not create the initial archive directory')
         return None
 
-    # create skeleton structure for PanOS devices
+    # create skeleton structure for PAN-OS devices
     # if we ever need to build packages that are not destined for panos devices, then this should be
     # refactored and the skeleton dirs should be done in the build_base_config function
     config_dir = os.path.join(archive_base_dir, archive_name, 'config')

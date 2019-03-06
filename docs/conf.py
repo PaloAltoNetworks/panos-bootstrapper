@@ -19,7 +19,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'PanOS Bootstrapper Utility'
+project = 'PAN-OS Bootstrapper Utility'
 copyright = '2018, Palo Alto Networks'
 author = 'SP-Solutions'
 

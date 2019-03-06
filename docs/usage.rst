@@ -105,7 +105,7 @@ List Init-Cfg Templates
         "success": true,
         "templates": [
             {
-                "description": "PanOS Version 8.0 Init-Cfg",
+                "description": "PAN-OS Version 8.0 Init-Cfg",
                 "name": "Default Init-Cfg",
                 "type": "init-cfg"
             }
@@ -201,7 +201,7 @@ Building a bootstrap package
 
 In this example, we took the output of the `get_bootstrap_variables` API call, entered our desired `hostname`
 (NGFW-001 in this case) and POSTed that information to the `generate_bootstrap_package` API. This returned an ISO image
-with the desired init-cfg template compiled with our variables. Attaching this ISO to a factory default PanOS firewall
+with the desired init-cfg template compiled with our variables. Attaching this ISO to a factory default PAN-OS firewall
 will result in the firewall booting up with the NGFW-001 hostname configured at boot.
 
 

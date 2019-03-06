@@ -1,9 +1,9 @@
-.. PanOS Bootstrapper Utility documentation master file, created by
+.. PAN-OS Bootstrapper Utility documentation master file, created by
    sphinx-quickstart on Mon Jul  9 09:56:26 2018.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-PanOS Bootstrapper Utility
+PAN-OS Bootstrapper Utility
 ==========================
 
 .. toctree::
@@ -30,7 +30,7 @@ PanOS Bootstrapper Utility
 About
 -----
 
-The PanOS bootstrapper Utility is a tool to simplify the process of building bootstrap packages for
+The PAN-OS bootstrapper Utility is a tool to simplify the process of building bootstrap packages for
 Palo Alto Networks Next-Gen Firewalls.
 
 Complete documentation on the Palo Alto Networks NGFW bootstrapping process can be found here_.

@@ -3,7 +3,7 @@
   "info" : {
     "description" : "A service to build bootstrap archives in various cloud environments. This\ntool will build S3 buckets in AWS, File Shares in Azure, Buckets in GCP, \ndatastore entries in VMWare and build ISO images for use with KVM. In short\nthis tool should help get VM-Series NGFWs up and running as quickly as \npossible. ",
     "version" : "0.1",
-    "title" : "PanOS Bootstrap Utility"
+    "title" : "PAN-OS Bootstrap Utility"
   },
   "paths" : {
     "/bootstrap_azure" : {

@@ -64,7 +64,7 @@ def index():
     Default route, return simple HTML page
     :return:  index.html template
     """
-    return render_template('index.html', title='PanOS Bootstrap Utility')
+    return render_template('index.html', title='PAN-OS Bootstrap Utility')
 
 
 @app.route('/bootstrapper.swagger.json')
