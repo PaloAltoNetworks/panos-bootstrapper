@@ -1,7 +1,7 @@
 
 FROM python:3.6-alpine
 
-LABEL description="Panos Bootstrap Builder Tool"
+LABEL description="PAN-OS Bootstrap Builder Tool"
 LABEL version="1.0"
 LABEL maintainer="sp-solutions@paloaltonetworks.com"
 
