@@ -293,6 +293,10 @@ def generate_bootstrap_package():
         archive = archive_utils.create_tgz(base_config, input_params['hostname'])
         mime_type = 'application/gzip'
 
+    elif archive_type == 'encoded_tgz':
+        archive = archive_utils.create_encoded_tgz(base_config, input_params['hostname'])
+        mime_type = 'application/octet-stream'
+
     elif archive_type == 's3':
         required_keys = {'aws_location', 'aws_secret', 'aws_key'}
         if not required_keys.issubset(input_params):

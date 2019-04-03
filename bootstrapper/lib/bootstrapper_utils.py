@@ -5,6 +5,7 @@ from base64 import urlsafe_b64decode
 import jinja2
 import requests
 import yaml
+from yaml.scanner import ScannerError
 from flask import Flask
 from flask import g
 from flask import render_template
@@ -45,8 +46,8 @@ def load_defaults():
         if defaults is None:
             try:
                 with open(os.path.join(app.root_path, '../conf/defaults.yaml')) as config_file:
-                    defaults = yaml.load(config_file.read())
-            except yaml.scanner.ScannerError:
+                    defaults = yaml.safe_load(config_file.read())
+            except ScannerError:
                 print("Could not load defaults!")
                 raise InvalidConfigurationError('Could not parse defaults configuration file')
 
@@ -63,7 +64,7 @@ def load_config():
         if config is None:
             try:
                 with open(os.path.join(app.root_path, '../conf/configuration.yaml')) as config_file:
-                    config = yaml.load(config_file.read())
+                    config = yaml.safe_load(config_file.read())
 
                 if type(config) is not dict:
                     print("Unknown config object from configuration.yaml")
@@ -75,10 +76,9 @@ def load_config():
 
                 g.bootstrap_config = config
 
-            except yaml.scanner.ScannerError:
+            except ScannerError:
                 print("Could not load configuration files!")
                 raise InvalidConfigurationError('Could not load configuration')
-
         return config
 
 

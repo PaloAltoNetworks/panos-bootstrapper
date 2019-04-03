@@ -222,6 +222,34 @@ def create_tgz(files, archive_name):
     return tar_file
 
 
+def create_encoded_tgz(files, archive_name):
+    """
+    Creates a base64 encoded tar.gz archive containing the user-data package. This is useful for openstack deployments
+    using nova boot, openstack server create, HEAT, and Tosca templates.
+    :param files: dict of files to encode in the archive
+    :param archive_name: name of the archive
+    :return: ascii encoded string containing a tar.gz archive
+    """
+
+    tgz_file = create_tgz(files, archive_name)
+    encoded_file_path = tgz_file + '.base64'
+
+    try:
+        rv = os.system(
+            f'base64 {tgz_file} > {encoded_file_path}'
+        )
+        if rv != 0:
+            print("Cold not make encoded tgz Image!")
+            return None
+
+    except [ValueError, OSError]:
+        print("Could not make tgz Image")
+        log.error('Could not make tgz image')
+        return None
+
+    return encoded_file_path
+
+
 def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
     archive_file_path = _create_archive_directory(files, bucket_prefix)
 

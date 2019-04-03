@@ -4,7 +4,7 @@ This document shows some of the available options using the API
 
 
 
-## Generating a zip file for use with Openstack HEAT
+## Generating a base64 encoded tar.gz file for use with Openstack HEAT
 
 This example will post the required data to generate a HEAT template, bootstrap.xml init-cfg.txt, and license 
 files. They will be placed in a zip file that can be unzipped and pushed to an openstack cluster using the 'openstack'
@@ -12,10 +12,9 @@ CLI tool.
 
 ```bash
 DFWMACK0AJHTDG:docs nembery$ curl -X POST -d '{
-        "deployment_type": "openstack",
         "hostname": "panos-81",
         "auth_key": "v123",
-        "archive_type": "zip",
+        "archive_type": "encoded_tgz",
         "management_ip": "192.168.1.100",
         "management_mask": "255.255.255.0",
         "management_gateway": "192.168.1.254",
@@ -24,7 +23,7 @@ DFWMACK0AJHTDG:docs nembery$ curl -X POST -d '{
         "inside_ip": "192.168.3.100",
         "ethernet2_1_profile": "PINGSSHTTPS",
         "ethernet1_1_profile": "PINGSSHTTPS",
-        "default_next_hop": "10.10.10.10"}' http://localhost:5000/generate_bootstrap_package -o panos-01.zip
+        "default_next_hop": "10.10.10.10"}' http://localhost:5000/generate_bootstrap_package -o panos-01.tgz.base64
 
 ```
 
