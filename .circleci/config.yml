@@ -54,3 +54,25 @@ jobs:
           path: test-reports
           destination: test-reports
           
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build and push Docker image
+          command: |
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              export TAG=1.0.${CIRCLE_BUILD_NUM}
+            elif [ "${CIRCLE_BRANCH}" == "develop" ]; then
+              export TAG=dev
+            elif [ "${CIRCLE_BRANCH}" == "beta" ]; then
+              export TAG=beta
+            else
+              echo "Not building other branch"
+              exit 0;
+            fi
+            docker build -t paloaltonetworks/panos-bootstrapper:$TAG .
+            echo ${DOCKER_PWD} | docker login -u ${DOCKER_LOGIN} --password-stdin
+            docker push paloaltonetworks/panos-bootstrapper:$TAG
+            if [ "${CIRCLE_BRANCH}" == "master" ]; then
+              docker tag paloaltonetworks/panos-bootstrapper:$TAG paloaltonetworks/panos-bootstrapper:latest
+              docker push paloaltonetworks/panos-bootstrapper:latest
+            fi
