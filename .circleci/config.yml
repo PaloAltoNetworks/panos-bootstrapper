@@ -1,14 +1,8 @@
-# Python CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-python/ for more details
-#
 version: 2
 jobs:
   build:
     docker:
-      # specify the version you desire here
-      # use `-browsers` prefix for selenium tests, e.g. `3.6.1-browsers`
-      - image: circleci/python:3.6.1
+      - image: circleci/python:3.6.8
       
       # Specify service dependencies here if necessary
       # CircleCI maintains a library of pre-built images
@@ -20,7 +14,6 @@ jobs:
     steps:
       - checkout
 
-      # Download and cache dependencies
       - restore_cache:
           keys:
           - v1-dependencies-{{ checksum "requirements.txt" }}
@@ -56,6 +49,7 @@ jobs:
           
       - setup_remote_docker:
           docker_layer_caching: true
+
       - run:
           name: Build and push Docker image
           command: |
