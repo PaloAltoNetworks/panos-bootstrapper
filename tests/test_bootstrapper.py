@@ -90,6 +90,45 @@ def test_build_openstack_archive(client):
     assert r.status_code == 200
 
 
+def test_build_tgz(client):
+    """
+    Tests build openstack_configs
+    :param client: test client
+    :return: test assertions
+    """
+    print("Test: Build Openstack Archive".center(79, '-'))
+
+    params = {
+        "hostname": "panos-test-targz",
+        "archive_type": "tgz",
+        "dns_server": "192.168.1.2",
+        "dhcp_or_static": "dhcp-client",
+        "bootstrap_template": "None",
+        "init_cfg_template": "Default Init-Cfg",
+    }
+    r = client.post('/generate_bootstrap_package', data=json.dumps(params), content_type='application/json')
+    assert r.status_code == 200
+
+
+def test_build_encoded_tgz(client):
+    """
+    Tests build openstack_configs
+    :param client: test client
+    :return: test assertions
+    """
+    print("Test: Build Openstack Archive".center(79, '-'))
+
+    params = {
+        "hostname": "panos-test-targz",
+        "archive_type": "encoded_tgz",
+        "dhcp_or_static": "dhcp-client",
+        "bootstrap_template": "",
+        "init_cfg_template": "Default Init-Cfg",
+    }
+    r = client.post('/generate_bootstrap_package', data=json.dumps(params), content_type='application/json')
+    assert r.status_code == 200
+
+
 def test_render_template(client):
     """
     Test render_template
