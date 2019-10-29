@@ -267,13 +267,19 @@ def create_s3_bucket(files, bucket_prefix, location, access_key, secret_key):
 
     try:
         print('creating bucket {}'.format(bucket_name))
-        response = client.create_bucket(
-            ACL='private',
-            Bucket=bucket_name,
-            CreateBucketConfiguration={
-                'LocationConstraint': location
-            },
-        )
+        if location == 'us-east-1':
+            response = client.create_bucket(
+                ACL='private',
+                Bucket=bucket_name
+            )
+        else:
+            response = client.create_bucket(
+                ACL='private',
+                Bucket=bucket_name,
+                CreateBucketConfiguration={
+                    'LocationConstraint': location
+                },
+            )
         print(response)
 
         for d in ['config', 'content', 'software', 'license']:
