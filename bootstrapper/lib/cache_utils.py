@@ -1,5 +1,5 @@
 
-from werkzeug.contrib.cache import FileSystemCache
+from cachelib import FileSystemCache
 import os
 import uuid
 
