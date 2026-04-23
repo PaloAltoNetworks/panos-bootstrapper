@@ -36,7 +36,7 @@ packaging==19.0
 passlib==1.7.1
 pluggy==0.9.0
 protobuf==3.7.1
-py==1.8.0
+py==1.10.0
 pyasn1==0.4.5
 pyasn1-modules==0.2.4
 pycparser==2.19
